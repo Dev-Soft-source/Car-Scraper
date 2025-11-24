@@ -1,3 +1,5 @@
+from optparse import Option
+from unicodedata import category
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -15,13 +17,16 @@ class SearchCreate(BaseModel):
     description: Optional[str] = None
     make: Optional[str] = None
     model: Optional[str] = None
-    year_from: Optional[int] = None
-    year_to: Optional[int] = None
+    year: Optional[int] = None
+    category: Optional[int] = None
     mileage_max: Optional[int] = None
+    power: Optional[int] = None
+    price_min: Optional[float] = None
     price_max: Optional[float] = None
     fuel_type: Optional[str] = None
     location: Optional[str] = None
-    seller_type: Optional[str] = None
+    seller: Optional[str] = None
+    site_url: Optional[str] = None
     target_price: Optional[float] = None
     is_active: Optional[bool] = True
 
@@ -30,14 +35,17 @@ class SearchUpdate(BaseModel):
     description: Optional[str] = None
     make: Optional[str] = None
     model: Optional[str] = None
-    year_from: Optional[int] = None
-    year_to: Optional[int] = None
+    year: Optional[int] = None
+    category: Optional[int] = None
     mileage_max: Optional[int] = None
+    power: Optional[int] = None
+    price_min: Optional[float] = None
     price_max: Optional[float] = None
     fuel_type: Optional[str] = None
     location: Optional[str] = None
     seller_type: Optional[str] = None
     target_price: Optional[float] = None
+    site_url: Optional[str] = None
     is_active: Optional[bool] = None
 
 class SearchResponse(BaseModel):
@@ -46,16 +54,16 @@ class SearchResponse(BaseModel):
     description: Optional[str]
     make: Optional[str]
     model: Optional[str]
-    year_from: Optional[int]
-    year_to: Optional[int]
+    year: Optional[int]
     mileage_max: Optional[int]
     price_max: Optional[float]
     fuel_type: Optional[str]
     location: Optional[str]
-    seller_type: Optional[str]
+    seller: Optional[str]
     target_price: Optional[float]
     is_active: bool
     is_favorite: bool
+    site_url: Optional[str] = None
     created_at: datetime
     last_search_date: Optional[datetime]
     

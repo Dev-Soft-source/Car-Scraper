@@ -108,6 +108,7 @@ def add_site_url(
         user_id=current_user.id,
         url=url_data.url
     )
+    print("sdlkfsdlfksdljfklsdj: ", url_data.url)
     db.add(new_url)
     db.commit()
     db.refresh(new_url)

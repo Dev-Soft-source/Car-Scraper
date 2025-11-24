@@ -101,7 +101,7 @@ class ScrapingService:
 
             # Initialize scraper
             if search_id not in self.scrapers:
-                self.scrapers[search_id] = WallapopScraper(headless=True)
+                self.scrapers[search_id] = WallapopScraper(headless=False)
             
             scraper = self.scrapers[search_id]
             
