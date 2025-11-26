@@ -79,8 +79,8 @@ api_router.include_router(logs.router)
 app.include_router(api_router)
 
 origins = [
-   # "https://book-arbitrage.onrender.com",  # frontend ngrok URL
-   "http://localhost:3000",  # frontend ngrok URL
+   "https://car-scraper-mo9o.onrender.com",  # frontend ngrok URL
+   # "http://localhost:3000",  # frontend ngrok URL
 ]
 
 app.add_middleware(
