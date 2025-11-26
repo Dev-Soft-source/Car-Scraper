@@ -82,7 +82,6 @@ const Settings = () => {
   };  
 
   const handleSaveSearch = async () => {
-    console.log("sldfjlsdkfjl: ", newUrl)
     if (newUrl.length === 0) {
       toast.error("Debes agregar al menos una URL");
       return;
@@ -93,7 +92,8 @@ const Settings = () => {
       site_url: newUrl, // or an array if your backend expects multiple URLs
       make: editingSearch.make || "",
       model: editingSearch.model || "",
-      year: parseIntOrNull(editingSearch.year),
+      year_from: parseIntOrNull(editingSearch.year_from),
+      year_to: parseIntOrNull(editingSearch.year_to),
       mileage_max: parseIntOrNull(editingSearch.mileage_max),
       target_price: parseIntOrNull(editingSearch.target_price),
       price_min: parseIntOrNull(editingSearch.price_min) || 0,
@@ -220,7 +220,8 @@ const Settings = () => {
                 description: "",
                 make: "",
                 model: "",
-                year: "",
+                year_from: "",
+                year_to: "",
                 mileage_max: "",
                 is_active: true,
                 scraping_interval: 60,
@@ -243,11 +244,11 @@ const Settings = () => {
           </button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 ">
           {searches.map((search) => (
             <div
               key={search.id}
-              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+              className="flex items-center justify-between p-4 bg-[#e6e6fa] my-2 rounded-lg"
             >
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900">{search.name}</h3>
@@ -285,7 +286,7 @@ const Settings = () => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <h3 className="text-xl font-bold mb-4">
-                {editingSearch.id ? "Edit Search" : "Create New Search"}
+                {editingSearch.id ? `Edit Search - ${newUrl}` : `Create New Search - ${newUrl}`}
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -433,7 +434,7 @@ const Settings = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Make
+                    Marca
                   </label>
                   <input
                     type="text"
@@ -450,7 +451,7 @@ const Settings = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Model
+                    Modelo
                   </label>
                   <input
                     type="text"
@@ -467,7 +468,7 @@ const Settings = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Fuel Type
+                    Tipo de combustible
                   </label>
                   <input
                     type="text"
@@ -478,13 +479,14 @@ const Settings = () => {
                         fuel_type: e.target.value,
                       }))
                     }
+                    placeholder="e.g., Diésel"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Potencia (CV)
+                    Caballos(CV)
                   </label>
                   <input
                     type="number"
@@ -501,15 +503,15 @@ const Settings = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Year
+                    Año
                   </label>
                   <input
                     type="number"
-                    value={editingSearch.year || ""}
+                    value={editingSearch.year_from || ""}
                     onChange={(e) =>
                       setEditingSearch((prev) => ({
                         ...prev,
-                        year: e.target.value,
+                        year_from: e.target.value,
                       }))
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -518,7 +520,24 @@ const Settings = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Max Mileage
+                    Hasta el año
+                  </label>
+                  <input
+                    type="number"
+                    value={editingSearch.year_to || ""}
+                    onChange={(e) =>
+                      setEditingSearch((prev) => ({
+                        ...prev,
+                        year_to: e.target.value,
+                      }))
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Kilometraje
                   </label>
                   <input
                     type="number"
@@ -535,7 +554,7 @@ const Settings = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location
+                    Ubicación
                   </label>
                   <input
                     type="text"
@@ -551,23 +570,20 @@ const Settings = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Seller
-                  </label>
-                  <input
-                    value={editingSearch.seller || ""}
-                    onChange={(e) =>
-                      setEditingSearch((prev) => ({
-                        ...prev,
-                        seller: e.target.value,
-                      }))
-                    }
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Seller Type</label>
+                  <select
+                    value={editingSearch.seller || ''}
+                    onChange={(e) => setEditingSearch(prev => ({ ...prev, seller: e.target.value }))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
+                  >
+                    <option value=""></option>
+                    <option value="Paticular">Paticular</option>
+                    <option value="Professional">Professional</option>
+                  </select>
                 </div>
 
-                <div>
-                  <label className="flex items-center space-x-2">
+                <div className="mt-10 ml-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     <input
                       type="checkbox"
                       checked={editingSearch.is_active || false}

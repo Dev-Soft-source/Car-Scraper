@@ -1,3 +1,4 @@
+import keyword
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from database.config import Base
@@ -24,9 +25,11 @@ class Search(Base):
     user_id = Column(String, ForeignKey('users.id'), nullable=False)
     name = Column(String, nullable=False)
     description = Column(Text)
+    keyword = Column(String)
     make = Column(String)
     model = Column(String)
-    year = Column(Integer)
+    year_from = Column(Integer)
+    year_to = Column(Integer)
     category = Column(Integer)
     mileage_max = Column(Integer)
     price_min = Column(Float)
@@ -54,6 +57,7 @@ class Listing(Base):
     platform_id = Column(String, unique=True)  # External ID from Wallapop
     title = Column(String)
     description = Column(Text)
+    keyword = Column(String)
     make = Column(String)
     model = Column(String)
     year = Column(Integer)

@@ -12,6 +12,10 @@ class SearchService {
     return axios.get(`${API_URL}/${id}`, { headers: authService.getAuthHeader() });
   }
 
+  getState() {
+    return axios.get(`${API_URL}/state`, { headers: authService.getAuthHeader() });
+  }
+
   createSearch(searchData) {
     return axios.post(API_URL, searchData, { headers: authService.getAuthHeader() });
   }

@@ -86,9 +86,11 @@ class ScrapingService:
         try:
             # Get search criteria
             search = db.query(Search).filter(Search.id == search_id, Search.user_id == user_id).first()
-            if not search or not search.is_active:
+            if search is None or not bool(search.is_active):
                 logger.warning(f"Search {search_id} not found or inactive")
                 return
+
+            print("Search: ", search)
             
             # Log start
             log = Log(
@@ -109,23 +111,32 @@ class ScrapingService:
             search_criteria = {
                 'make': search.make,
                 'model': search.model,
+                'price_min': search.price_min,
                 'price_max': search.price_max,
-                # 'location': search.location,
+                'power': search.power,
+                'keyword': search.keyword,
+                'mileage_max': search.mileage_max,
+                'location': search.location,
+                'fuel_type': search.fuel_type,
+                'site_url': search.site_url,
+                'name': search.name,
+                'category': search.category,
+                'target_price': search.target_price,
+                'seller': search.seller,
+                'year_from': search.year_from,
+                'year_to': search.year_to,
+                'last_search_date': search.last_search_date
             }
             
             # Perform scraping
             logger.info(f"Scraping with criteria: {search_criteria}")
             scraped_listings = scraper.scrape_listings(search_criteria)
-            print("scraped_listings: ", scraped_listings)
+            
             # Process listings
             new_count = 0
             updated_count = 0
             below_target_count = 0
 
-            return
-
-
-            
             for listing_data in scraped_listings:
                 try:
                     # Check if listing exists
@@ -135,11 +146,19 @@ class ScrapingService:
                     
                     # Calculate if below target
                     target_met = False
-                    if search.target_price and listing_data.get('price'):
-                        target_met = listing_data['price'] <= search.target_price
+                    target_price = getattr(search, 'target_price', None)
+                    price = listing_data.get('price')
+                    # Ensure both target_price and price are present and are numbers
+                    if target_price is not None and price is not None:
+                        try:
+                            # Convert to float if possible (handles Decimal, str, int)
+                            tp = float(target_price)
+                            p = float(price)
+                            target_met = p <= tp
+                        except (TypeError, ValueError):
+                            target_met = False
                         if target_met:
                             below_target_count += 1
-                    
                     if existing:
                         # Update existing listing
                         existing.price = listing_data.get('price', existing.price)
@@ -156,8 +175,8 @@ class ScrapingService:
                             platform_id=listing_data.get('platform_id'),
                             title=listing_data.get('title'),
                             description=listing_data.get('description'),
-                            make=search.make,
-                            model=search.model,
+                            make=listing_data.get('make'),
+                            model=listing_data.get('model'),
                             year=listing_data.get('year'),
                             mileage=listing_data.get('mileage'),
                             price=listing_data.get('price'),
@@ -176,26 +195,37 @@ class ScrapingService:
                     continue
             
             # Calculate average price
-            all_listings = db.query(Listing).filter(Listing.search_id == search_id).all()
-            if all_listings:
-                prices = [l.price for l in all_listings if l.price and l.price > 0]
-                if prices:
-                    avg_price = sum(prices) / len(prices)
-                    
-                    # Update average price for all listings
-                    for listing in all_listings:
-                        listing.average_price = avg_price
-                    
-                    # Save statistics
-                    stat = Statistics(
-                        date=datetime.utcnow(),
-                        make=search.make,
-                        model=search.model,
-                        average_price=avg_price,
-                        count=len(prices)
-                    )
-                    db.add(stat)
             
+            all_listings = db.query(Listing).filter(Listing.search_id == search_id).all()
+            # Gather all prices, ensuring valid prices are converted to float
+            prices = []
+            for l in all_listings:
+                try:
+                    # Ensure l.price is a valid number (either int or float)
+                    price = float(l.price)  # Convert to float
+                    if price > 0:
+                        prices.append(price)
+                except (ValueError, TypeError) as e:
+                    logger.error(f"Invalid price value '{l.price}' for listing {l.id}: {e}")
+                    continue  # Skip invalid price
+
+            # If we have valid prices, calculate the average
+            if prices:
+                avg_price = sum(prices) / len(prices)
+                
+                # Update average price for all listings
+                for listing in all_listings:
+                    listing.average_price = avg_price
+
+                # Save statistics
+                stat = Statistics(
+                    date=datetime.utcnow(),
+                    make=search.make,
+                    model=search.model,
+                    average_price=avg_price,
+                    count=len(prices)
+                )
+                db.add(stat)
             # Update search last_search_date
             search.last_search_date = datetime.utcnow()
             

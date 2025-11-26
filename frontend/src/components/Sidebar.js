@@ -21,7 +21,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="h-screen w-64 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900 text-white flex flex-col shadow-2xl">
+    <div className="h-screen w-64 bg-gradient-to-b from-slate-800 via-blue-700 to-slate-800 text-white flex flex-col shadow-2xl">
       {/* Logo */}
       <div className="border-b border-blue-800/50">
         <div className="flex items-center space-x-3">

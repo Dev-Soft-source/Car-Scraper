@@ -9,15 +9,20 @@ from models.models import User, Search
 from utils.dependencies import get_current_user
 from services.scraping_service import scraping_service
 from datetime import datetime
+from typing import Any
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix='/searches', tags=['Searches'])
-
+scraper_status = {"running_loop": False}
 class SearchCreate(BaseModel):
     name: str
     description: Optional[str] = None
+    keyword: Optional[str] = None
     make: Optional[str] = None
     model: Optional[str] = None
-    year: Optional[int] = None
+    year_from: Optional[int] = None
+    year_to: Optional[int] = None
     category: Optional[int] = None
     mileage_max: Optional[int] = None
     power: Optional[int] = None
@@ -33,9 +38,11 @@ class SearchCreate(BaseModel):
 class SearchUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    keyword: Optional[str] = None
     make: Optional[str] = None
     model: Optional[str] = None
-    year: Optional[int] = None
+    year_from: Optional[int] = None
+    year_to: Optional[int] = None
     category: Optional[int] = None
     mileage_max: Optional[int] = None
     power: Optional[int] = None
@@ -43,7 +50,7 @@ class SearchUpdate(BaseModel):
     price_max: Optional[float] = None
     fuel_type: Optional[str] = None
     location: Optional[str] = None
-    seller_type: Optional[str] = None
+    seller: Optional[str] = None
     target_price: Optional[float] = None
     site_url: Optional[str] = None
     is_active: Optional[bool] = None
@@ -52,10 +59,14 @@ class SearchResponse(BaseModel):
     id: str
     name: str
     description: Optional[str]
+    keyword: Optional[str]
     make: Optional[str]
     model: Optional[str]
-    year: Optional[int]
+    category: Optional[int]
+    year_from: Optional[int]
+    year_to: Optional[int]
     mileage_max: Optional[int]
+    price_min: Optional[float]
     price_max: Optional[float]
     fuel_type: Optional[str]
     location: Optional[str]
@@ -69,6 +80,13 @@ class SearchResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+class ScraperStatsSchema(BaseModel):
+    running: bool
+
+@router.get('/state', response_model=ScraperStatsSchema)
+def get_state(user: Any = Depends(get_current_user)):
+    return ScraperStatsSchema(running=scraper_status["running_loop"])
 
 @router.get('', response_model=List[SearchResponse])
 def get_all_searches(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -107,6 +125,7 @@ def update_search(search_id: str, search_data: SearchUpdate, current_user: User 
     db.refresh(search)
     return search
 
+
 @router.delete('/{search_id}')
 def delete_search(search_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     search = db.query(Search).filter(Search.id == search_id, Search.user_id == current_user.id).first()
@@ -125,16 +144,13 @@ def start_search(search_id: str, current_user: User = Depends(get_current_user),
     search = db.query(Search).filter(Search.id == search_id, Search.user_id == current_user.id).first()
     if not search:
         raise HTTPException(status_code=404, detail='Search not found')
-    
     # Get user settings for interval
     from models.models import UserSettings
     settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
     interval = settings.scraping_interval if settings else 60
-    print("Search: ", search)
-    print("interval: ", interval)
 
+    scraper_status["running_loop"] = True
     success = scraping_service.start_search_scraping(search_id, current_user.id, interval)
-    
     if success:
         return {'message': 'Scraping started', 'search_id': search_id}
     else:
@@ -142,6 +158,7 @@ def start_search(search_id: str, current_user: User = Depends(get_current_user),
 
 @router.post('/{search_id}/stop')
 def stop_search(search_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    scraper_status["running_loop"] = False
     search = db.query(Search).filter(Search.id == search_id, Search.user_id == current_user.id).first()
     if not search:
         raise HTTPException(status_code=404, detail='Search not found')

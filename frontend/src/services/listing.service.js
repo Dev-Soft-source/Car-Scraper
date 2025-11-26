@@ -29,6 +29,10 @@ class ListingService {
   getStatistics() {
     return axios.get(`${API_URL}/statistics`, { headers: authService.getAuthHeader() });
   }
+
+  getState() {
+    return axios.get(`${API_URL}/search/state`, { headers: authService.getAuthHeader() });
+  }
 }
 
 export default new ListingService();

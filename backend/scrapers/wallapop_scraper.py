@@ -1,3 +1,4 @@
+from re import search
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,6 +10,9 @@ import time
 import random
 import logging
 from typing import List, Dict, Optional
+from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +39,7 @@ class WallapopScraper:
         # Basic options
         if self.headless:
             chrome_options.add_argument('--headless')  # Use new headless mode
-
+        
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
         chrome_options.add_argument('--disable-blink-features=AutomationControlled')
@@ -133,30 +137,45 @@ class WallapopScraper:
     
     def _build_search_url(self, base_url: str, search_criteria: Dict) -> str:
         """Build Wallapop search URL from criteria"""
+
         params = []
-        
-        # Build keywords
-        keywords = []
-        if search_criteria.get('make'):
-            keywords.append(search_criteria['make'])
+        # Category filter
+        if search_criteria.get('category'):
+            params.append(f"category_id={search_criteria['category']}")
+
+        # Brand / make filter 
+        if search_criteria.get('make'): 
+            brand = search_criteria['make'].replace(" ", "+") 
+            params.append(f"brand={brand}")
+
         if search_criteria.get('model'):
-            keywords.append(search_criteria['model'])
-        
-        if keywords:
-            params.append(f"keywords={'%20'.join(keywords)}")
-        
+            params.append(f"model={search_criteria['model']}")
+
         # Price filter
+        if search_criteria.get('price_min'):
+            params.append(f"min_sale_price={int(search_criteria['price_min'])}")
+
         if search_criteria.get('price_max'):
-            params.append(f"maxPrice={int(search_criteria['price_max'])}")
-        
-        # Location (default to Madrid if not specified)
-        if search_criteria.get('location'):
-            params.append(f"latitude={search_criteria.get('latitude', 40.4168)}")
-            params.append(f"longitude={search_criteria.get('longitude', -3.7038)}")
-        
-        if params:
-            return f"{base_url}/?{'&'.join(params)}"
-        return "https://es.wallapop.com/"
+            params.append(f"max_sale_price={int(search_criteria['price_max'])}")   
+
+        # year filter
+        if search_criteria.get('year_from'):
+            params.append(f"min_year={int(search_criteria['year_from'])}")
+
+        if search_criteria.get('year_to'):
+            params.append(f"max_year={int(search_criteria['year_to'])}")     
+
+        if search_criteria.get('mileage_max'):
+            mileage_max = int(search_criteria['mileage_max'])
+            if mileage_max < 250000:
+                params.append(f"max_km={mileage_max}")
+                
+        if search_criteria.get('power'):
+            params.append(f"max_horse_power={int(search_criteria['power'])}")
+        # Construct URL
+        search_url = f"{base_url}/search?{'&'.join(params)}&source=side_bar_filters&order_by=most_relevance"
+       
+        return search_url
     
     def scrape_listings(self, search_criteria: Dict) -> List[Dict]:
         """
@@ -175,13 +194,12 @@ class WallapopScraper:
         
         try:
             # Build search URL
-            search_url = "https://es.wallapop.com/"
-            logger.info(f"Navigating to: {search_url}")
+            logger.info(f"Navigating to: {search_criteria['site_url']}")
             
             # Navigate to the page
             if not self.driver:
                 raise Exception("WebDriver not initialized")
-            self.driver.get(search_url)
+            self.driver.get(search_criteria['site_url'])
             self._human_delay(3, 5)
             
             # Handle cookie consent
@@ -200,58 +218,48 @@ class WallapopScraper:
             self._human_delay(2, 4)
 
             # Try selecting the "Coches" category to focus on vehicle listings
-            category_url = self._select_category(search_url, "Coches")
+            #self._select_category(search_criteria['site_url'], search_criteria['keyword'])
 
-            search_url = self._build_search_url(category_url, search_criteria)
+            search_url = self._build_search_url(search_criteria['site_url'], search_criteria)
+
+            try:
+                self.driver.get(search_url)
+            except Exception as e:
+                logger.warning(f"Search Page load timeout, but continuing: {e}")
+
+            try:
+                WebDriverWait(self.driver, 15).until(
+                    EC.presence_of_element_located((By.TAG_NAME, "body"))
+                )
+                logger.info("Page loaded successfully")
+            except Exception as e:
+                logger.warning(f"Page load timeout, but continuing: {e}")
 
             print("Search_url: ", search_url)
             
             # Scroll to load more content
             self._scroll_page()
-            
-            # Find listing elements - try multiple selectors
-            listing_selectors = [
-                "article[class*='ItemCard']",
-                "article[class*='item-card']",
-                "article[class*='Card']",
-                "div[class*='ItemCard']",
-                "div[class*='item-card']",
-                "a[class*='ItemCard']",
-                "[data-testid='item-card']",
-                ".item-card",
-                "article",
-            ]
-            
-            listing_elements = []
-            for selector in listing_selectors:
-                try:
-                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    if elements and len(elements) > 0:
-                        listing_elements = elements
-                        logger.info(f"Found {len(elements)} listings using selector: {selector}")
-                        break
-                except Exception as e:
-                    logger.debug(f"Selector {selector} failed: {e}")
+
+            # --- Wait until at least one item appears ---
+            try:
+                WebDriverWait(self.driver, 15).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='/item/']"))
+                )
+            except Exception as e:
+                print("No listings found or page took too long to load.")
+                self.driver.quit()
+                exit()
+
+            # --- Collect all listing links ---
+            listing_elements = self.driver.find_elements(By.CSS_SELECTOR, "a[href*='/item/']")
+            listing_urls = [elem.get_attribute("href") for elem in listing_elements]
+
+            print(f"Total listings found: {len(listing_urls)}")
+            for index, url in enumerate(listing_urls[:50]):  # limit to 50
+                if not isinstance(url, str) or url is None:
+                    logger.warning(f"Skipping invalid URL at index {index}: {url}")
                     continue
-            
-            if not listing_elements:
-                logger.warning("No listing elements found. Trying alternative approach...")
-                # Try to find any clickable items that might be listings
-                listing_elements = self.driver.find_elements(By.CSS_SELECTOR, "a[href*='/item/']")
-                logger.info(f"Found {len(listing_elements)} potential listings via link href")
-            
-            # Extract data from each listing
-            for index, element in enumerate(listing_elements[:50]):  # Limit to 50 listings
-                try:
-                    listing_data = self._extract_listing_data(element, index)
-                    if listing_data and listing_data.get('title'):
-                        listings.append(listing_data)
-                except Exception as e:
-                    logger.error(f"Error extracting listing {index}: {e}")
-                    continue
-            
-            logger.info(f"Successfully scraped {len(listings)} listings")
-            
+                listings.append(self._extract_listing_data(url, index))
         except Exception as e:
             logger.error(f"Error during scraping: {e}", exc_info=True)
             raise
@@ -263,22 +271,25 @@ class WallapopScraper:
         if not self.driver:
             return search_url
         # ---------------------------------------------------
-        # 3️⃣ PHASE 3: Try shadow DOM search
+        # 3️⃣ PHASE 3: Try shadow DOM search   
         # ---------------------------------------------------
         result = categories[category_name]
         if result:
             cate_url = search_url + result
-            self._human_delay(1, 2)
+            
             # >>> Navigate to the category URL
             try:
                 self.driver.get(cate_url)
+                self._human_delay(1, 4)
+                self._scroll_page()
+                self._human_delay(1, 4)
                 return cate_url
             except Exception as e:
                 print("Navigation Category_url failed:", e)
                 return search_url
         else:
             return search_url
-    
+        
     def _scroll_page(self):
         """Scroll page to load more content"""
         if not self.driver:
@@ -296,179 +307,170 @@ class WallapopScraper:
         except Exception as e:
             logger.warning(f"Error scrolling page: {e}")
     
-    def _extract_listing_data(self, element, index: int) -> Optional[Dict]:
-        """Extract data from a single listing element"""
+    def _extract_listing_data(self, url, index):
+
+        listing = {"url": url}
+
+        # ----- platform_id -----
+        match_url = re.search(r'/item/([^/]+)', url)
+        if match_url:
+            listing["platform_id"] = match_url.group(1)
+            print(f"Item ID: {listing["platform_id"]}")
+        else:
+            listing["platform_id"] = None
+
+        if not self.driver:
+            return None
         try:
-            listing = {}
-            import re
-            
-            # Try to get element text for fallback
-            element_text = ""
-            try:
-                element_text = element.text
-            except:
-                pass
-            
-            # Extract title - try multiple selectors
-            title_selectors = [
-                (By.CLASS_NAME, "ItemCard__title"),
-                (By.CSS_SELECTOR, "[class*='title']"),
-                (By.CSS_SELECTOR, "h2"),
-                (By.CSS_SELECTOR, "h3"),
-                (By.TAG_NAME, "h2"),
-                (By.TAG_NAME, "h3"),
-            ]
-            
-            listing['title'] = f"Listing {index + 1}"
-            for by, selector in title_selectors:
-                try:
-                    title_elem = element.find_element(by, selector)
-                    if title_elem and title_elem.text.strip():
-                        listing['title'] = title_elem.text.strip()
-                        break
-                except:
-                    continue
-            
-            # If still no title, try getting from link text or aria-label
-            if listing['title'] == f"Listing {index + 1}":
-                try:
-                    link = element.find_element(By.TAG_NAME, "a")
-                    title_attr = link.get_attribute('aria-label') or link.get_attribute('title') or link.text.strip()
-                    if title_attr:
-                        listing['title'] = title_attr
-                except:
-                    pass
-            
-            # Extract price - try multiple selectors
-            price_selectors = [
-                (By.CLASS_NAME, "ItemCard__price"),
-                (By.CSS_SELECTOR, "[class*='price']"),
-                (By.CSS_SELECTOR, "[class*='Price']"),
-                (By.CSS_SELECTOR, "span[class*='price']"),
-            ]
-            
-            listing['price'] = 0.0
-            for by, selector in price_selectors:
-                try:
-                    price_elem = element.find_element(by, selector)
-                    price_text = price_elem.text.strip()
-                    if price_text:
-                        # Extract price number
-                        price_match = re.search(r'[\d.,]+', price_text.replace('€', '').replace('EUR', ''))
-                        if price_match:
-                            price_str = price_match.group(0).replace('.', '').replace(',', '.')
-                            listing['price'] = float(price_str)
-                            break
-                except:
-                    continue
-            
-            # Extract description
-            desc_selectors = [
-                (By.CLASS_NAME, "ItemCard__description"),
-                (By.CSS_SELECTOR, "[class*='description']"),
-                (By.CSS_SELECTOR, "p"),
-            ]
-            
-            listing['description'] = ''
-            for by, selector in desc_selectors:
-                try:
-                    desc_elem = element.find_element(by, selector)
-                    if desc_elem and desc_elem.text.strip():
-                        listing['description'] = desc_elem.text.strip()
-                        break
-                except:
-                    continue
-            
-            # Extract location
-            location_selectors = [
-                (By.CLASS_NAME, "ItemCard__location"),
-                (By.CSS_SELECTOR, "[class*='location']"),
-                (By.CSS_SELECTOR, "[class*='Location']"),
-            ]
-            
-            listing['location'] = ''
-            for by, selector in location_selectors:
-                try:
-                    location_elem = element.find_element(by, selector)
-                    if location_elem and location_elem.text.strip():
-                        listing['location'] = location_elem.text.strip()
-                        break
-                except:
-                    continue
-            
-            # Extract URL - try multiple approaches
-            listing['platform_url'] = ''
-            listing['platform_id'] = f"listing_{index}_{int(time.time())}"
-            
-            try:
-                # First try to find link in element
-                link_elem = element.find_element(By.TAG_NAME, "a")
-                href = link_elem.get_attribute('href')
-                if href:
-                    listing['platform_url'] = href if href.startswith('http') else f"https://es.wallapop.com{href}"
-                    # Extract platform ID from URL
-                    url_parts = listing['platform_url'].split('/')
-                    for part in reversed(url_parts):
-                        if part and part not in ['item', 'detail', '']:
-                            listing['platform_id'] = part.split('?')[0]  # Remove query params
-                            break
-            except:
-                # If no link found, try to get it from parent or data attributes
-                try:
-                    parent = element.find_element(By.XPATH, "./..")
-                    link = parent.find_element(By.TAG_NAME, "a")
-                    href = link.get_attribute('href')
-                    if href:
-                        listing['platform_url'] = href if href.startswith('http') else f"https://es.wallapop.com{href}"
-                except:
-                    pass
-            
-            # Extract image
-            listing['image_url'] = ''
-            img_selectors = [
-                (By.TAG_NAME, "img"),
-                (By.CSS_SELECTOR, "img[class*='image']"),
-                (By.CSS_SELECTOR, "img[class*='Image']"),
-            ]
-            
-            for by, selector in img_selectors:
-                try:
-                    img_elem = element.find_element(by, selector)
-                    src = img_elem.get_attribute('src') or img_elem.get_attribute('data-src') or img_elem.get_attribute('data-lazy-src')
-                    if src and 'wallapop' in src.lower():
-                        listing['image_url'] = src
-                        break
-                except:
-                    continue
-            
-            # Try to extract vehicle details from title/description
-            combined_text = f"{listing.get('title', '')} {listing.get('description', '')}".lower()
-            
-            # Extract year (look for 4-digit numbers between 1990-2025)
-            year_match = re.search(r'\b(19[9][0-9]|20[0-2][0-9])\b', combined_text)
-            if year_match:
-                listing['year'] = int(year_match.group(1))
-            
-            # Extract mileage (look for km pattern)
-            mileage_match = re.search(r'(\d{1,3}(?:\.\d{3})*)\s*km', combined_text)
-            if mileage_match:
-                mileage_str = mileage_match.group(1).replace('.', '')
-                listing['mileage'] = int(mileage_str)
-            
-            # Determine seller type (if professional listing)
-            listing['seller_type'] = 'Professional' if 'pro' in combined_text or 'profesional' in combined_text else 'Private'
-            
-            # Only return if we have at least a title
-            if listing.get('title') and listing['title'] != f"Listing {index + 1}":
-                logger.debug(f"Extracted listing: {listing.get('title', 'Unknown')} - {listing.get('price', 0)}€")
-                return listing
-            
-            return None
-            
+            self.driver.get(url)
+            self._human_delay(3, 5)
+
+            # Wait for main body
+            WebDriverWait(self.driver, 15).until(
+                EC.presence_of_element_located((By.TAG_NAME, "body"))
+            )
+
+            # Get rendered body HTML
+            body_html = self.driver.execute_script("return document.body.innerHTML")
+            self._human_delay(1, 2)
+
+            # Parse HTML
+            soup = BeautifulSoup(body_html, "html.parser")
+
+            # --- TITLE ---
+            # Find h1 with class containing 'ItemDetailTwoColumns__title'
+            title_tag = None
+            for h1 in soup.find_all("h1"):
+                h1_class = h1.get("class")
+                if h1_class and any("ItemDetailTwoColumns__title" in c for c in h1_class):
+                    title_tag = h1
+                    break
+            listing["title"] = title_tag.get_text(strip=True) if title_tag else None
+
+            all_span = soup.find_all("span")
+            # --- PRICE ---
+            price_tag = None
+            for h1 in all_span:
+                h1_class = h1.get("class")
+                if h1_class and any("price_ItemDetailPrice" in c for c in h1_class):
+                    price_tag = h1
+                    break
+            if price_tag:
+                value = price_tag.get_text(strip=True) 
+                listing["price"] = value.replace("\xa0", "").replace("€", "").replace(".", "").strip()
+            else:         
+                listing["price"] = None 
+
+            # --- SELLER, POWER ---
+            seller_tag = None
+            for h1 in all_span:
+                h1_class = h1.get("class")
+                if h1_class and any("profile_ItemDetailSellerProfile__name" in c for c in h1_class):
+                    seller_tag = h1
+                    break
+            listing["seller"] = seller_tag.get_text(strip=True) if seller_tag else None
+
+            attributes = []
+
+            for span in all_span:
+                span_class = span.get("class")
+                if span_class and any("AttributesInfo__measure" in c for c in span_class):
+                    attributes.append(span.get_text(strip=True))
+
+
+            listing["fuel_type"] = attributes[3] if len(attributes) > 3 else None
+            if len(attributes) > 4:
+                hp = attributes[4]
+                listing["power"] = hp.replace(" caballos", "").strip()
+            else:
+                listing["power"] = None
+            # ItemDetailSEOBubble__link      
+
+            # --- MAKER ---
+            maker_tag = None
+            for h1 in all_span:
+                h1_class = h1.get("class")
+                if h1_class and any("bubble_ItemDetailSEOBubble__link" in c for c in h1_class):
+                    maker_tag = h1
+                    break
+            listing["make"] = maker_tag.get_text(strip=True) if maker_tag else None
+
+            # --- MODEL, YEAR, MILEAGE ---
+            # Defensive lookups for ['model', 'year', 'mileage'] to avoid attribute errors
+            def get_attribute_value(label):
+                label_span = soup.find('span', string=label)
+                if label_span:
+                    value_span = label_span.find_next('span')
+                    if value_span and hasattr(value_span, 'text'):
+                        return value_span.text.strip()
+                return None
+
+            listing["model"] = get_attribute_value('Modelo')
+            listing["year"] = get_attribute_value('Año')
+            listing["mileage"] = get_attribute_value('Kilómetros')
+
+            # --- DESCRIPTION ---
+            all_section = soup.find_all("section")
+            description_tag = None
+            for h1 in all_section:
+                h1_class = h1.get("class")
+                if h1_class and any("ItemDetailTwoColumns__description" in c for c in h1_class):
+                    description_tag = h1
+                    break
+            listing["description"] = description_tag.get_text(strip=True) if description_tag else None
+
+            # --- EDITED LAST TIME ---
+
+            last_time_tag = None
+            for h1 in all_span:
+                h1_class = h1.get("class")
+                if h1_class and any("stats_ItemDetailStats__description" in c for c in h1_class):
+                    last_time_tag = h1
+                    break
+            if last_time_tag:
+                last = last_time_tag.get_text(strip=True)
+                # Regular expression to extract the time (number and unit)
+                match = re.search(r"Editado hace (\d+) (\w+)", last)
+
+                if match:
+                    number = int(match.group(1))  # Extracts the number
+                    unit = match.group(2)         # Extracts the unit (days, months, etc.)
+
+                    # Get the current UTC time
+                    current_utc_time = datetime.utcnow()
+
+                    # Subtract the time based on the unit
+                    if unit == "días":
+                        time_difference = timedelta(days=number)
+                    elif unit == "horas":
+                        time_difference = timedelta(hours=number)
+                    elif unit == "minutos":
+                        time_difference = timedelta(minutes=number)
+                    else:
+                        listing["last_updated"] = None
+                    # Calculate the UTC time before the given duration, only if unit was handled above
+                    if unit in ["días", "horas", "minutos"]:
+                        original_time = current_utc_time - time_difference
+                        listing["last_updated"] = original_time.strftime('%Y-%m-%d %H:%M:%S.%f')
+                    else:
+                        listing["last_updated"] = None
+
+            # --- IMAGE URL ---
+            # Try to find the first img tag with slot="carousel-content"
+            img_tag = soup.find('img', {'slot': 'carousel-content'})
+
+            # Check if the img_tag exists and has a 'src' attribute
+            if img_tag and img_tag.has_attr('src'):
+                listing["image_url"] = img_tag['src']
+            else:
+                listing["image_url"] = None
+
         except Exception as e:
-            logger.error(f"Error in _extract_listing_data: {e}", exc_info=True)
+            print("Failed to get title:", e)
             return None
-    
+
+        return listing
+
     def close(self):
         """Close the WebDriver"""
         if self.driver:

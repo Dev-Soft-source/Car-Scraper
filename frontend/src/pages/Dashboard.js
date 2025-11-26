@@ -16,15 +16,43 @@ const Dashboard = () => {
   const [filters, setFilters] = useState({});
   const [loading, setLoading] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
-  const [isScraperRunning, setIsScraperRunning] = useState(false);
-  const [isScraperBusy, setIsScraperBusy] = useState(false); 
+
+  const [running, setRunning] = useState(false);
+  const [stopping, setStopping] = useState(true);
+  const isStart = useRef(false);
 
   const hasFetchedSearches = useRef(false);
 
   // Ask for notifications permission
   useEffect(() => {
-    requestNotificationPermission();
+    if(!isStart.current){
+      requestNotificationPermission();
+      fetchStats();
+      const interval = setInterval(fetchStats, 5000);
+      return () => clearInterval(interval);
+      isStart.current = true;
+    }      
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await searchService.getState();
+      console.log(response.data)
+      if (response.data.running){
+        setRunning(true);
+        setStopping(false);
+      }else
+      {
+        setRunning(false);
+        setStopping(true);
+      }
+      // setStats(response.data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      // setLoading(false);
+    }
+  };
 
   // Fetch searches
   const fetchSearches = async () => {
@@ -43,8 +71,9 @@ const Dashboard = () => {
 
   // Fetch listings
   const fetchListings = useCallback(async () => {
+    
     if (!activeSearch) return;
-
+    
     setLoading(true);
     try {
       const response = await listingService.getListingsBySearch(activeSearch, filters);
@@ -57,7 +86,7 @@ const Dashboard = () => {
         );
 
         if (newBelowTarget.length > 0) {
-          playAlertSound();
+          
           newBelowTarget.forEach(listing => {
             showNotification('New Listing Below Target!', {
               body: `${listing.title || listing.description} - €${listing.price}`,
@@ -148,11 +177,11 @@ const Dashboard = () => {
 
   // Auto-refresh every 30s when scraper is running
   useEffect(() => {
-    if (isScraperRunning) {
+    if (running) {
       const interval = setInterval(fetchListings, 30000);
       return () => clearInterval(interval);
     }
-  }, [isScraperRunning, fetchListings]);
+  }, [running, fetchListings]);
 
   // Re-filter on filter change
   useEffect(() => applyFilters(listings, filters), [filters, listings]);
@@ -170,73 +199,106 @@ const Dashboard = () => {
   };
 
   // 🔥 START/STOP SCRAPER BUTTON DISABLED UNTIL RESPONSE
-  const handleStartStop = async () => {
+  const handleStart = async () => {
     if (!activeSearch) {
       toast.error('Por favor, selecciona primero una búsqueda');
       return;
     }
-
-    setIsScraperBusy(true); // disable button immediately
-
+    setRunning(true);
     try {
-      if (isScraperRunning) {
-        await searchService.stopSearch(activeSearch);
-        setIsScraperRunning(false);
-        toast.info('Rastreador detenido');
-      } else {
-        await searchService.startSearch(activeSearch);
-        setIsScraperRunning(true);
-        toast.success('Rastreador iniciado');
-        fetchListings();
-      }
+      await searchService.stopSearch(activeSearch);
+      toast.info('Rastreador detenido');
     } catch {
       toast.error('Error al iniciar/detener el rastreador');
     } finally {
-      setIsScraperBusy(false); // re-enable button
+      setRunning(false); // re-enable button
+    }
+  };
+
+  const handleStop = async () => {
+    setStopping(true);
+    try {
+      await searchService.startSearch(activeSearch);
+      playAlertSound();
+      setRunning(false);
+      toast.success('Rastreador iniciado');
+      fetchListings();
+    } catch {
+      toast.error('Error al iniciar/detener el rastreador');
+    } finally {
+      setStopping(false); // re-enable button
     }
   };
 
   const clearFilters = () => setFilters({});
 
-
   return (
     <div data-testid="dashboard-page">
-
+      <button onClick={playAlertSound}>Play Alert Sound</button>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Panel</h1>
-          <p className="text-gray-600 mt-1">Monitorear y analizar los anuncios de Wallapop</p>
+          <p className="text-gray-600 mt-1">
+            Monitorear y analizar los anuncios de Wallapop
+          </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3">          
 
           {/* Start/Stop Scraper */}
           <button
-            onClick={handleStartStop}
+            onClick={handleStop}
             data-testid="start-stop-button"
-            disabled={isScraperBusy}
+            disabled={!stopping || running}
             className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all transform 
-              ${isScraperBusy ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}
-              ${isScraperRunning
-                ? 'bg-red-500 hover:bg-red-600 text-white'
-                : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white'
+              ${
+                 running
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:scale-105"
+              }
+              ${
+                "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
               }`}
           >
-            {isScraperBusy ? (
+            {running ? (
               <>
-                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"> </div>
+                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full">
+                  {" "}
+                </div>
                 <span>Procesando...</span>
-              </>              
-            ) : isScraperRunning ? (
-              <>
-                <Square size={20} />
-                <span>Detener el rastreador</span>
               </>
             ) : (
               <>
                 <Play size={20} />
                 <span>Iniciar el rastreador</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleStart}
+            data-testid="start-stop-button"
+            disabled={stopping || !running}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all transform 
+              ${
+                stopping
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:scale-105"
+              }
+              ${
+                "bg-red-500 hover:bg-red-600 text-white"
+              }`}
+          >
+            {stopping ? (
+              <>
+                <Square size={20} />
+                <span>Procesando...</span>
+              </>
+            ) : (
+              <>
+                <Square size={20} />
+                <span>Detener el rastreador</span>
               </>
             )}
           </button>
@@ -248,7 +310,7 @@ const Dashboard = () => {
             className="p-3 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg transition-all"
             disabled={loading}
           >
-            <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+            <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
           </button>
 
           {/* Charts toggle */}
@@ -256,7 +318,11 @@ const Dashboard = () => {
             onClick={() => setShowCharts(!showCharts)}
             data-testid="toggle-charts-button"
             className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all 
-              ${showCharts ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
+              ${
+                showCharts
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }
             `}
           >
             <BarChart3 size={20} />
@@ -268,14 +334,16 @@ const Dashboard = () => {
       {/* Searches */}
       {searches.length > 0 && (
         <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Búsqueda activa</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Búsqueda activa
+          </label>
           <select
-            value={activeSearch || ''}
+            value={activeSearch || ""}
             onChange={(e) => setActiveSearch(e.target.value)}
             data-testid="search-selector"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            {searches.map(search => (
+            {searches.map((search) => (
               <option key={search.id} value={search.id}>
                 {search.name} - {search.description}
               </option>
@@ -285,7 +353,11 @@ const Dashboard = () => {
       )}
 
       {/* Filter Panel */}
-      <FilterPanel filters={filters} setFilters={setFilters} onClear={clearFilters} />
+      <FilterPanel
+        filters={filters}
+        setFilters={setFilters}
+        onClear={clearFilters}
+      />
 
       {/* Charts */}
       {showCharts && filteredListings.length > 0 && (
@@ -303,15 +375,21 @@ const Dashboard = () => {
 
         <div className="bg-green-600 rounded-xl p-6 text-white shadow-lg">
           <div className="text-sm opacity-90">Por debajo del objetivo</div>
-          <div className="text-3xl font-bold mt-2" data-testid="below-target-count">
-            {filteredListings.filter(l => l.target_price_met).length}
+          <div
+            className="text-3xl font-bold mt-2"
+            data-testid="below-target-count"
+          >
+            {filteredListings.filter((l) => l.target_price_met).length}
           </div>
         </div>
 
         <div className="bg-purple-600 rounded-xl p-6 text-white shadow-lg">
           <div className="text-sm opacity-90">Favoritos</div>
-          <div className="text-3xl font-bold mt-2" data-testid="favorites-count">
-            {filteredListings.filter(l => l.is_favorite).length}
+          <div
+            className="text-3xl font-bold mt-2"
+            data-testid="favorites-count"
+          >
+            {filteredListings.filter((l) => l.is_favorite).length}
           </div>
         </div>
 
@@ -322,9 +400,9 @@ const Dashboard = () => {
             {filteredListings.length > 0
               ? Math.round(
                   filteredListings.reduce((sum, l) => sum + (l.price || 0), 0) /
-                  filteredListings.length
+                    filteredListings.length
                 ).toLocaleString()
-              : '0'}
+              : "0"}
           </div>
         </div>
       </div>
@@ -334,10 +412,9 @@ const Dashboard = () => {
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-
       ) : filteredListings.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredListings.map(listing => (
+          {filteredListings.map((listing) => (
             <ListingCard
               key={listing.id}
               listing={listing}
@@ -345,19 +422,19 @@ const Dashboard = () => {
             />
           ))}
         </div>
-
       ) : (
         <div className="text-center py-20">
           <div className="text-6xl mb-4">📦</div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">No se encontraron anuncios</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            No se encontraron anuncios
+          </h3>
           <p className="text-gray-600">
             {searches.length === 0
-              ? 'Crea una búsqueda en Configuración para comenzar a rastrear'
-              : 'Intenta ajustar tus filtros o iniciar el rastreador'}
+              ? "Crea una búsqueda en Configuración para comenzar a rastrear"
+              : "Intenta ajustar tus filtros o iniciar el rastreador"}
           </p>
         </div>
       )}
-
     </div>
   );
 };
