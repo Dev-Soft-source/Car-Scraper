@@ -46,14 +46,14 @@ RUN LATEST_CHROMEDRIVER=$(wget -qO- https://chromedriver.storage.googleapis.com/
     && chmod +x /usr/local/bin/chromedriver \
     && rm chromedriver_linux64.zip
 
-# Copy the requirements.txt file and install dependencies
+# Copy the entire backend folder to the container
+COPY backend /app/backend
+
+# Install dependencies
 COPY backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy the entire backend directory into the container
-COPY backend /app/backend
-
-# Expose the FastAPI port
+# Expose FastAPI port
 EXPOSE 8000
 
 # Set the default command to run FastAPI with Uvicorn
