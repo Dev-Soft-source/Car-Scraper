@@ -23,6 +23,8 @@ class ListingResponse(BaseModel):
     fuel_type: Optional[str]
     location: Optional[str]
     seller_type: Optional[str]
+    seller:Optional[str]
+    power: Optional[int]
     average_price: Optional[float]
     target_price_met: bool
     is_favorite: bool

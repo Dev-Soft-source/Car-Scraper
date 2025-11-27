@@ -17,11 +17,26 @@ const Settings = () => {
     confirm: false,
   });
   const hasFetched = useRef(false);
+  const carBrands = ["Abarth", "Alfa Romeo", "Alpine", "Aston Martin", "Audi", "BMW", "BYD", "Bentley", "CUPRA", "Cadillac",
+     "Caterham", "Chevrolet", "Chrysler", "Citroen", "Corvette", "DFSK", "DR", "DS", "Dacia", "Daewoo", "Daihatsu", "Dodge", "EBRO", 
+     "EVO", "FIAT", "Ferrari", "Ford", "Fornasari", "Galloper", "Honda", "Hummer", "Hyundai", "INEOS", "Infiniti", "Isuzu", "Iveco",
+     "Jaecoo", "Jaguar", "Jeep", "KGM", "KIA", "KTM", "Karma", "LDV", "LYNK & CO", "Lada", "Lamborghini", "Lancia", "Land Rover", "Leapmotor",
+      "Lexus", "Lotus", "MG", "MINI", "Mahindra", "Maserati", "Maxus", "Maybach", "Mazda", "McLaren", "Mercedes-Benz", "Mitsubishi", "Morgan",
+      "Nissan", "Omoda", "Opel", "Peugeot", "Piaggio", "Porsche", "Renault", "Renault Trucks", "Rolls-Royce", "Rover", "SEAT", "Saab", "Santana",
+      "Skoda", "SsangYong", "Subaru", "Suzuki", "TH!NK", "Tata", "Tesla", "Toyota", "VAZ", "Volkswagen", "Volvo", "Wiesmann", "smart"]; // Array of car brands
+  const carModels = ["CLK", "GL", "GLE", "SL", "01", "08", "1007", "106", "107", "108", "110", "111", "112", "124 Spider", "12Cilindri",
+     "147", "156", "159", "166", "2", "2008", "206", "207", "208", "214", "215", "25", "296", "296 Challenge", "3", "3.0", "300", "300 C",
+     "300 M", "3008", "306", "307", "308", "311 GT", "3200 GT", "323", "350", "350Z", "360", "370Z", "4", "4.0", "4/4", "4007", "4008",
+     "406", "407", "408", "45", "456", "458", "488", "4C", "5", "5.0", "500", "5008", "500L", "500X", "508", "580", "595", "6", "6.0",
+     "600", "607", "612 Scaglietti", "626", "650S", "695", "7", "7.0", "718 Boxster", "718 Cayman", "718 Spyder", "75", "806", "807", 
+     "812", "8C Competizione", "9", "9-3", "9-3X", "9-4X", "9-5", "911", "A1", "A1 allstreet", "A110", "A2", "A3", "A3 allstreet", "A4", "A4 Allroad"]; // Array of car models
 
   useEffect(() => {
+    
     if (!hasFetched.current) {
       fetchSiteUrls();
       fetchSearches();
+      setNewUrl("");
       hasFetched.current = true;
     }
   }, []);
@@ -49,18 +64,19 @@ const Settings = () => {
       toast.error("Por favor, ingresa una URL");
       return;
     }
-
+ 
     try {
       if (editingUrlId) {
-        await settingsService.updateSiteUrl(editingUrlId, newUrl); // Backend must support update
+        await settingsService.updateSiteUrl(editingUrlId, newUrl);
         toast.success("URL actualizada correctamente");
         setEditingUrlId(null);
       } else {
         await settingsService.addSiteUrl(newUrl);
         toast.success("URL agregada correctamente");
       }
-      setNewUrl("");
-      fetchSiteUrls();
+      fetchSiteUrls(); // Fetch site URLs again to update the list
+      setNewUrl(""); // Make sure to clear the input after adding/updating
+      console.log("handleAddOrUpdateUrl Url: ", newUrl);
     } catch (error) {
       toast.error("Error al guardar la URL");
     }
@@ -86,7 +102,29 @@ const Settings = () => {
       toast.error("Debes agregar al menos una URL");
       return;
     }
-    const searchData = {
+    const editSearchData = {
+      name: editingSearch.name || "New Search",
+      description: editingSearch.description || "",
+      site_url: editingSearch.site_url || "", // or an array if your backend expects multiple URLs
+      make: editingSearch.make || "",
+      model: editingSearch.model || "",
+      year_from: parseIntOrNull(editingSearch.year_from),
+      year_to: parseIntOrNull(editingSearch.year_to),
+      mileage_max: parseIntOrNull(editingSearch.mileage_max),
+      target_price: parseIntOrNull(editingSearch.target_price),
+      price_min: parseIntOrNull(editingSearch.price_min) || 0,
+      price_max: parseIntOrNull(editingSearch.price_max) || 0,
+      scraping_interval: parseIntOrNull(editingSearch.scraping_interval) || 0,
+      keyword: editingSearch.keyword || "",
+      category: parseIntOrNull(editingSearch.category),
+      location: editingSearch.location || "",
+      fuel_type: editingSearch.fuel_type || "",
+      power: parseIntOrNull(editingSearch.power),
+      seller: editingSearch.seller || "",
+      is_active: editingSearch.is_active !== undefined ? editingSearch.is_active : true,
+    };
+
+    const newSearchData = {
       name: editingSearch.name || "New Search",
       description: editingSearch.description || "",
       site_url: newUrl, // or an array if your backend expects multiple URLs
@@ -97,8 +135,8 @@ const Settings = () => {
       mileage_max: parseIntOrNull(editingSearch.mileage_max),
       target_price: parseIntOrNull(editingSearch.target_price),
       price_min: parseIntOrNull(editingSearch.price_min) || 0,
-      price_max: parseIntOrNull(editingSearch.price_max) || 50000,
-      scraping_interval: parseIntOrNull(editingSearch.scraping_interval) || 60,
+      price_max: parseIntOrNull(editingSearch.price_max) || 0,
+      scraping_interval: parseIntOrNull(editingSearch.scraping_interval) || 0,
       keyword: editingSearch.keyword || "",
       category: parseIntOrNull(editingSearch.category),
       location: editingSearch.location || "",
@@ -110,10 +148,10 @@ const Settings = () => {
 
     try {
       if (editingSearch.id) {
-        await searchService.updateSearch(editingSearch.id, searchData);
+        await searchService.updateSearch(editingSearch.id, editSearchData);
         toast.success("Búsqueda actualizada");
       } else {
-        await searchService.createSearch(searchData);
+        await searchService.createSearch(newSearchData);
         toast.success("Búsqueda creada");
       }
       setEditingSearch(null);
@@ -154,7 +192,8 @@ const Settings = () => {
       toast.error("Error al cambiar la contraseña");
     }
   };
-
+  
+  
   return (
     <div data-testid="settings-page">
       {" "}
@@ -165,12 +204,14 @@ const Settings = () => {
 
         <div className="flex space-x-2 mb-4">
           <input
-            type="url"
+            type="text"
+            name="url-input"
+            autoComplete="off"  // Add this line to prevent autofill
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            data-testid="new-url-input"
             placeholder="https://example.com"
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+           
           />
           <button
             onClick={handleAddOrUpdateUrl}
@@ -225,13 +266,13 @@ const Settings = () => {
                 mileage_max: "",
                 is_active: true,
                 scraping_interval: 60,
-                keyword: "",
-                category: "",
+                keyword: "Coches",
+                category: "100",
                 target_price: 1000,
                 price_min: 100,
                 price_max: 1000,       
                 fuel_type: "",
-                power: 10,
+                power: "",
                 location: "",
                 seller: "",
               })
@@ -251,7 +292,7 @@ const Settings = () => {
               className="flex items-center justify-between p-4 bg-[#e6e6fa] my-2 rounded-lg"
             >
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{search.name}</h3>
+                <h3 className="font-semibold text-gray-900">{search.name} : {search.site_url}</h3>
                 <p className="text-sm text-gray-600">{search.description}</p>
                 <div className="text-xs text-gray-500 mt-1">
                   {search.make && `Make: ${search.make} `}
@@ -286,7 +327,7 @@ const Settings = () => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <h3 className="text-xl font-bold mb-4">
-                {editingSearch.id ? `Edit Search - ${newUrl}` : `Create New Search - ${newUrl}`}
+                {editingSearch.id ? `Edit Search - ${editingSearch.site_url}` : `Create New Search - url:  ${newUrl}`}
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -436,8 +477,7 @@ const Settings = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Marca
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={editingSearch.make || ""}
                     onChange={(e) =>
                       setEditingSearch((prev) => ({
@@ -446,15 +486,21 @@ const Settings = () => {
                       }))
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
+                  >
+                    <option value=""></option>  {/* Placeholder option */}
+                    {carBrands.map((brand) => (
+                      <option key={brand} value={brand}>
+                        {brand}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Modelo
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={editingSearch.model || ""}
                     onChange={(e) =>
                       setEditingSearch((prev) => ({
@@ -463,7 +509,14 @@ const Settings = () => {
                       }))
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
+                  >
+                    <option value=""></option>  {/* Placeholder option */}
+                    {carModels.map((model) => (
+                      <option key={model} value={model}>
+                        {model}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -497,6 +550,7 @@ const Settings = () => {
                         power: e.target.value,
                       }))
                     }
+                    placeholder="e.g., 120"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>

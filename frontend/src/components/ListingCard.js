@@ -1,11 +1,11 @@
 import React from 'react';
-import { Heart, ExternalLink, MapPin, Calendar, Fuel, Gauge } from 'lucide-react';
+import { Heart, ExternalLink, MapPin, Calendar, Fuel, Gauge, ArrowUp } from 'lucide-react';
 import { format } from 'date-fns';
 
 const ListingCard = ({ listing, onToggleFavorite }) => {
   const isBelowTarget = listing.target_price_met;
   const isProfessional = listing.seller_type === 'Professional';
-
+  console.log(listing);
   return (
     <div 
       data-testid="listing-card"
@@ -97,6 +97,19 @@ const ListingCard = ({ listing, onToggleFavorite }) => {
             <div className="flex items-center text-gray-600">
               <MapPin size={14} className="mr-1" />
               <span className="truncate">{listing.location}</span>
+            </div>
+          )}
+          {listing.location && (
+            <div className="flex items-center text-gray-600">
+              <MapPin size={14} className="mr-1" />
+              <span className="truncate">{listing.location}</span>
+            </div>
+          )}
+
+          {listing.power && (
+            <div className="flex items-center text-gray-600">
+              <ArrowUp size={14} className="mr-1" />
+              <span className="truncate">{listing.power}</span>
             </div>
           )}
         </div>

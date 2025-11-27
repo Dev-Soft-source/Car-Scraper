@@ -69,13 +69,14 @@ class SearchResponse(BaseModel):
     mileage_max: Optional[int]
     price_min: Optional[float]
     price_max: Optional[float]
+    power: Optional[int]
     fuel_type: Optional[str]
     location: Optional[str]
     seller: Optional[str]
     target_price: Optional[float]
     is_active: bool
     is_favorite: bool
-    site_url: Optional[str] = None
+    site_url: Optional[str]
     created_at: datetime
     last_search_date: Optional[datetime]
     

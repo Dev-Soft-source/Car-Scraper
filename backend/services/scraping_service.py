@@ -137,13 +137,15 @@ class ScrapingService:
             updated_count = 0
             below_target_count = 0
 
+            
+
             for listing_data in scraped_listings:
                 try:
                     # Check if listing exists
                     existing = db.query(Listing).filter(
                         Listing.platform_id == listing_data.get('platform_id')
                     ).first()
-                    
+                    print("ssssssssssssssssssssssssss: ", listing_data)
                     # Calculate if below target
                     target_met = False
                     target_price = getattr(search, 'target_price', None)
@@ -175,6 +177,7 @@ class ScrapingService:
                             platform_id=listing_data.get('platform_id'),
                             title=listing_data.get('title'),
                             description=listing_data.get('description'),
+                            keyword=search.keyword,
                             make=listing_data.get('make'),
                             model=listing_data.get('model'),
                             year=listing_data.get('year'),
@@ -184,8 +187,10 @@ class ScrapingService:
                             location=listing_data.get('location'),
                             seller_type=listing_data.get('seller_type', 'Private'),
                             target_price_met=target_met,
-                            platform_url=listing_data.get('platform_url'),
-                            image_url=listing_data.get('image_url')
+                            platform_url=listing_data.get('url'),
+                            image_url=listing_data.get('image_url'),
+                            power=listing_data.get('power'),
+                            seller=listing_data.get('seller')
                         )
                         db.add(new_listing)
                         new_count += 1

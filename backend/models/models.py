@@ -63,9 +63,11 @@ class Listing(Base):
     year = Column(Integer)
     mileage = Column(Integer)
     price = Column(Float)
+    power = Column(Integer)
     fuel_type = Column(String)
     location = Column(String)
     seller_type = Column(String)  # Private, Professional
+    seller = Column(String) 
     average_price = Column(Float)
     target_price_met = Column(Boolean, default=False)
     is_favorite = Column(Boolean, default=False)

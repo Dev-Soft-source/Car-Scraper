@@ -37,7 +37,6 @@ const Dashboard = () => {
   const fetchStats = async () => {
     try {
       const response = await searchService.getState();
-      console.log(response.data)
       if (response.data.running){
         setRunning(true);
         setStopping(false);
@@ -234,7 +233,6 @@ const Dashboard = () => {
 
   return (
     <div data-testid="dashboard-page">
-      <button onClick={playAlertSound}>Play Alert Sound</button>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -345,7 +343,7 @@ const Dashboard = () => {
           >
             {searches.map((search) => (
               <option key={search.id} value={search.id}>
-                {search.name} - {search.description}
+                {search.name}({search.site_url}) - {search.description}
               </option>
             ))}
           </select>
