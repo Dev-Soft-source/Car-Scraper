@@ -15,7 +15,7 @@ from backend.database.config import Base, engine
 from backend.models import models
 
 # Import routes
-from routes import auth, searches, listings, settings, logs
+from backend.routes import auth, searches, listings, settings, logs
 
 # Import scraping service
 from backend.services.scraping_service import scraping_service
