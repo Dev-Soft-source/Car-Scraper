@@ -29,13 +29,7 @@ RUN apt-get update -y && apt-get install -y \
     libnss3 \
     libasound2 \
     libvulkan1 \
-    # Install Node.js (includes npm)
-    && curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
-
-# Check if npm and node are installed
-RUN node -v && npm -v
 
 
 # Download and install Google Chrome .deb package
