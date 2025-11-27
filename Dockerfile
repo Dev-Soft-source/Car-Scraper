@@ -23,10 +23,10 @@ RUN apt-get update -y && apt-get install -y \
     libxcomposite1 \
     libxdamage1 \
     libxrandr2 \
-    libfontconfig1 \
     xdg-utils \
     libdbus-1-3 \
     libxtst6 \
+    libnss3 \
     libasound2 \
     libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
