@@ -4,7 +4,7 @@ FROM python:3.13.5-slim
 # Set working directory inside the container
 WORKDIR /
 
-# Update apt-get repositories and install necessary dependencies with a faster mirror
+# Install necessary dependencies
 RUN apt-get update -y && apt-get install -y \
     wget \
     curl \
@@ -24,20 +24,28 @@ RUN apt-get update -y && apt-get install -y \
     libxdamage1 \
     libxrandr2 \
     xdg-utils \
+    libdbus-1-3 \
+    libxtst6 \
+    libnss3 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Google Chrome
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-RUN apt install -y ./google-chrome-stable_current_amd64.deb
-RUN rm google-chrome-stable_current_amd64.deb
+# Download and install Google Chrome .deb package
+RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && dpkg -i google-chrome-stable_current_amd64.deb \
+    && apt-get install -f -y \ 
+    && rm google-chrome-stable_current_amd64.deb
 
-# Install ChromeDriver for Selenium
+# Install ChromeDriver (for Selenium)
 RUN LATEST_CHROMEDRIVER=$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE) \
     && wget https://chromedriver.storage.googleapis.com/${LATEST_CHROMEDRIVER}/chromedriver_linux64.zip \
     && unzip chromedriver_linux64.zip \
     && mv chromedriver /usr/local/bin/ \
     && chmod +x /usr/local/bin/chromedriver \
     && rm chromedriver_linux64.zip
+
+# Copy application files into the container
+COPY . /
 
 # Copy FastAPI requirements and install them
 COPY backend/requirements.txt /backend/
