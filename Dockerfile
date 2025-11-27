@@ -23,14 +23,13 @@ RUN apt-get update -y && apt-get install -y \
     libxcomposite1 \
     libxdamage1 \
     libxrandr2 \
+    libfontconfig1 \
     xdg-utils \
     libdbus-1-3 \
     libxtst6 \
-    libnss3 \
     libasound2 \
     libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
-
 
 # Download and install Google Chrome .deb package
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
