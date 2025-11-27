@@ -4,7 +4,7 @@ FROM python:3.13.5-slim
 # Set working directory inside the container
 WORKDIR /
 
-# Install necessary dependencies
+# Install necessary dependencies, including libvulkan1 for Chrome
 RUN apt-get update -y && apt-get install -y \
     wget \
     curl \
@@ -28,6 +28,7 @@ RUN apt-get update -y && apt-get install -y \
     libxtst6 \
     libnss3 \
     libasound2 \
+    libvulkan1 \ 
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install Google Chrome .deb package
