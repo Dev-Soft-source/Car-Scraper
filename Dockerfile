@@ -52,9 +52,9 @@ COPY . /
 COPY backend/requirements.txt /backend/
 RUN pip install --no-cache-dir -r /backend/requirements.txt
 
-# Set up React frontend (if you have one)
-WORKDIR /frontend
-COPY frontend/package.json frontend/package-lock.json /frontend/
+# Set up the frontend (React)
+WORKDIR /app/frontend
+COPY frontend/package.json frontend/package-lock.json /app/frontend/
 RUN npm install
 
 # Expose ports for FastAPI (8000) and React (3000)
