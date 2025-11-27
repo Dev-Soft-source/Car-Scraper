@@ -15,7 +15,10 @@ RUN apt-get update -y && apt-get install -y \
     libappindicator3-1 \
     libatk-bridge2.0-0 \
     libatk1.0-0 \
+    libx11-6 \
+    libxss1 \
     libcups2 \
+    libx11-dev \
     libgdk-pixbuf2.0-0 \
     libnspr4 \
     libnss3 \
@@ -26,10 +29,17 @@ RUN apt-get update -y && apt-get install -y \
     xdg-utils \
     libdbus-1-3 \
     libxtst6 \
-    libnss3 \
+    libgtk-3-0 \
+    libpangocairo-1.0-0 \
+    libpango-1.0-0 \
+    libgbm1 \
+    libegl1-mesa \
     libasound2 \
     libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
+   
+
+    
 
 # Install Google Chrome
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
