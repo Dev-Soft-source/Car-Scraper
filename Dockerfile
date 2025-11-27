@@ -60,14 +60,9 @@ WORKDIR /app/backend
 COPY backend/requirements.txt /app/backend/
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 
-# Set up React frontend (if you have one)
-WORKDIR /app/frontend
-COPY frontend/package.json frontend/package-lock.json /app/frontend/
-RUN npm install --force
-
 # Expose ports for FastAPI (8000) and React (3000)
-EXPOSE 8000 3000
+EXPOSE 10000
 
 # Set the default command to run FastAPI with Uvicorn
-CMD ["uvicorn backend.main:app --host 0.0.0.0 --port 8000 & npm start"]
+CMD ["uvicorn backend.main:app --host 0.0.0.0 --port 10000"]
 
