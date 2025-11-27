@@ -2,7 +2,7 @@
 FROM python:3.13.5-slim
 
 # Set working directory inside the container
-WORKDIR /backend
+WORKDIR /app
 
 # Install necessary dependencies, including libvulkan1 for Chrome and Node.js/npm
 RUN apt-get update -y && apt-get install -y \
@@ -46,13 +46,16 @@ RUN LATEST_CHROMEDRIVER=$(wget -qO- https://chromedriver.storage.googleapis.com/
     && chmod +x /usr/local/bin/chromedriver \
     && rm chromedriver_linux64.zip
 
+# Copy the entire backend folder into the container
+COPY backend /app/backend
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (Make sure requirements.txt is copied correctly)
+COPY backend/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-
-# Expose FastAPI port
-EXPOSE 10000
+# Expose the FastAPI and React ports
+EXPOSE 8000
 
 # Set the default command to run FastAPI with Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
