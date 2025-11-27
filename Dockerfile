@@ -35,7 +35,7 @@ RUN apt-get update -y && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Check if npm and node are installed
-RUN node -v && npm -v  # Debugging step to verify npm and node are installed correctly
+RUN node -v && npm -v
 
 
 # Download and install Google Chrome .deb package
@@ -62,7 +62,7 @@ RUN pip install --no-cache-dir -r /backend/requirements.txt
 # Set up the frontend (React)
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json /app/frontend/
-RUN npm install
+RUN npm install --force
 
 # Expose ports for FastAPI (8000) and React (3000)
 EXPOSE 8000 3000
