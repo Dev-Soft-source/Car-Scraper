@@ -8,6 +8,7 @@ from backend.database.config import get_db
 from backend.models.models import User, Search
 from backend.utils.dependencies import get_current_user
 from backend.services.scraping_service import scraping_service
+from backend.models.models import UserSettings
 from datetime import datetime
 from typing import Any
 import logging
@@ -145,7 +146,7 @@ def start_search(search_id: str, current_user: User = Depends(get_current_user),
     if not search:
         raise HTTPException(status_code=404, detail='Search not found')
     # Get user settings for interval
-    from models.models import UserSettings
+    
     settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
     interval = settings.scraping_interval if settings else 60
 
