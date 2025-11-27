@@ -11,14 +11,14 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # Import database and models
-from database.config import Base, engine
-from models import models
+from backend.database.config import Base, engine
+from backend.models import models
 
 # Import routes
 from routes import auth, searches, listings, settings, logs
 
 # Import scraping service
-from services.scraping_service import scraping_service
+from backend.services.scraping_service import scraping_service
 
 # Configure logging
 logging.basicConfig(
