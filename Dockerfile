@@ -4,7 +4,7 @@ FROM python:3.13.5-slim
 # Set working directory inside the container
 WORKDIR /
 
-# Install necessary dependencies, including libvulkan1 for Chrome
+# Install necessary dependencies, including libvulkan1 for Chrome and Node.js/npm
 RUN apt-get update -y && apt-get install -y \
     wget \
     curl \
@@ -28,8 +28,15 @@ RUN apt-get update -y && apt-get install -y \
     libxtst6 \
     libnss3 \
     libasound2 \
-    libvulkan1 \ 
+    libvulkan1 \
+    # Install Node.js (includes npm)
+    && curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
+
+# Check if npm and node are installed
+RUN node -v && npm -v  # Debugging step to verify npm and node are installed correctly
+
 
 # Download and install Google Chrome .deb package
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
