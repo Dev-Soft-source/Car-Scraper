@@ -31,10 +31,10 @@ RUN apt-get update -y && apt-get install -y \
     libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and install Google Chrome .deb package
+# Install Google Chrome
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && dpkg -i google-chrome-stable_current_amd64.deb \
-    && apt-get install -f -y \ 
+    && apt-get install -f -y \
     && rm google-chrome-stable_current_amd64.deb
 
 # Install ChromeDriver (for Selenium)
@@ -54,6 +54,10 @@ COPY backend /app/backend
 # Copy the requirements file from the backend directory and install dependencies
 COPY backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Copy the diagnostic script to the container
+COPY diagnostic.sh /app/diagnostic.sh
+RUN chmod +x /app/diagnostic.sh
 
 # Expose the FastAPI and React ports
 EXPOSE 8000

@@ -53,7 +53,7 @@ class WallapopScraper:
         chrome_options.add_argument('--disable-site-isolation-trials')
         chrome_options.add_argument('--disable-web-security')
         chrome_options.add_argument('--allow-running-insecure-content')
-        
+      
         # Exclude automation flags
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
