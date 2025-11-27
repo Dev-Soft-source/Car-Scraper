@@ -47,7 +47,8 @@ RUN LATEST_CHROMEDRIVER=$(wget -qO- https://chromedriver.storage.googleapis.com/
     && rm chromedriver_linux64.zip
 
 
-RUN pip install --no-cache-dir -r /backend/requirements.txt
+RUN cd /backend && pip install --no-cache-dir -r requirements.txt
+
 
 # Expose FastAPI port
 EXPOSE 10000
