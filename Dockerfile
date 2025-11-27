@@ -52,21 +52,22 @@ RUN LATEST_CHROMEDRIVER=$(wget -qO- https://chromedriver.storage.googleapis.com/
     && chmod +x /usr/local/bin/chromedriver \
     && rm chromedriver_linux64.zip
 
-# Copy application files into the container
-COPY . /app/
+# Copy the application files into the container
+COPY . /app
 
-# Copy FastAPI requirements and install them
+# Set up FastAPI
+WORKDIR /app/backend
 COPY backend/requirements.txt /app/backend/
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 
-# Set up the frontend (React)
+# Set up React frontend (if you have one)
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json /app/frontend/
-RUN npm install --force
+RUN npm install
 
 # Expose ports for FastAPI (8000) and React (3000)
 EXPOSE 8000 3000
 
 # Set the default command to run FastAPI with Uvicorn
-CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port 8000 & npm start --prefix /app/frontend"]
+CMD ["uvicorn backend.main:app --host 0.0.0.0 --port 8000 & npm start"]
 
