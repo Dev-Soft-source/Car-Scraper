@@ -58,5 +58,5 @@ RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 EXPOSE 10000
 
 # Set the default command to run FastAPI with Uvicorn
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "10000"]
 
