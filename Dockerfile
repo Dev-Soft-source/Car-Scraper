@@ -53,11 +53,11 @@ RUN LATEST_CHROMEDRIVER=$(wget -qO- https://chromedriver.storage.googleapis.com/
     && rm chromedriver_linux64.zip
 
 # Copy application files into the container
-COPY . /
+COPY . /app/
 
 # Copy FastAPI requirements and install them
-COPY backend/requirements.txt /backend/
-RUN pip install --no-cache-dir -r /backend/requirements.txt
+COPY backend/requirements.txt /app/backend/
+RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 
 # Set up the frontend (React)
 WORKDIR /app/frontend
