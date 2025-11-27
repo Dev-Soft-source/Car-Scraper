@@ -40,14 +40,11 @@ class WallapopScraper:
         if self.headless:
             chrome_options.add_argument('--headless')  # Use new headless mode
         
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_argument('--no-sandbox')  # Required in Docker
+        chrome_options.add_argument('--disable-dev-shm-usage')  # Prevents crashes in Docker
         chrome_options.add_argument('--disable-blink-features=AutomationControlled')
         chrome_options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
         chrome_options.add_argument('--window-size=1920,1080')
-        
-        # Better user agent
-        chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
         
         # Additional options for better compatibility
         chrome_options.add_argument('--disable-features=IsolateOrigins,site-per-process')
@@ -66,10 +63,14 @@ class WallapopScraper:
             "profile.managed_default_content_settings.images": 1
         }
         chrome_options.add_experimental_option("prefs", prefs)
-        
+
         try:
+            # Install ChromeDriver with WebDriverManager
             service = Service(ChromeDriverManager().install())
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
+            
+            # Set page load timeout
+            self.driver.set_page_load_timeout(30)  # Allow more time for Chrome to initialize
             
             # Execute script to hide webdriver property
             self.driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
@@ -84,7 +85,7 @@ class WallapopScraper:
         except Exception as e:
             logger.error(f"Failed to initialize WebDriver: {e}")
             raise
-    
+
     def _human_delay(self, min_seconds: float = 1, max_seconds: float = 3):
         """Add random delay to simulate human behavior"""
         delay = random.uniform(min_seconds, max_seconds)
