@@ -79,7 +79,7 @@ api_router.include_router(logs.router)
 app.include_router(api_router)
 
 origins = [
-   "https://car-scraper-mo9o.onrender.com",  # frontend ngrok URL
+   "https://cars-scraperf.onrender.com",  # frontend ngrok URL
    # "http://localhost:3000",  # frontend ngrok URL
 ]
 
