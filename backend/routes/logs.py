@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List
-from database.config import get_db
-from models.models import User, Log
-from utils.dependencies import get_current_user
+from backend.database.config import get_db
+from backend.models.models import User, Log
+from backend.utils.dependencies import get_current_user
 from datetime import datetime
 
 router = APIRouter(prefix='/logs', tags=['Logs'])

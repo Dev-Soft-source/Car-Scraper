@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List
-from database.config import get_db
-from models.models import User, UserSettings, SiteUrl
-from utils.dependencies import get_current_user
-from utils.auth import verify_password, get_password_hash
+from backend.database.config import get_db
+from backend.models.models import User, UserSettings, SiteUrl
+from backend.utils.dependencies import get_current_user
+from backend.utils.auth import verify_password, get_password_hash
 from datetime import datetime
 
 router = APIRouter(prefix='/settings', tags=['Settings'])

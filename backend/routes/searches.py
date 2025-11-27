@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List
-from database.config import get_db
-from models.models import User, Search
-from utils.dependencies import get_current_user
-from services.scraping_service import scraping_service
+from backend.database.config import get_db
+from backend.models.models import User, Search
+from backend.utils.dependencies import get_current_user
+from backend.services.scraping_service import scraping_service
 from datetime import datetime
 from typing import Any
 import logging
