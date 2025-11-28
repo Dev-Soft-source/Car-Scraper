@@ -1,9 +1,6 @@
 # Use Python 3.13 slim base
 FROM python:3.13-slim
 
-# Use official Selenium standalone Chrome image (includes Chrome + Chromedriver)
-FROM selenium/standalone-chrome:latest
-
 # Set working directory
 WORKDIR /app
 
