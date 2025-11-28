@@ -1,10 +1,11 @@
 FROM selenium/standalone-chrome:latest
 
-# Set working directory
+# Switch to root so pip can install system-wide
+USER root
+
 WORKDIR /app
 
-
-# Copy Python dependencies and install
+# Copy and install Python dependencies
 COPY backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
@@ -17,5 +18,7 @@ ENV PYTHONPATH="${PYTHONPATH}:/app"
 # Expose FastAPI port
 EXPOSE 8000
 
-# Run FastAPI server
+# Switch back to seluser (required for Chrome/Selenium)
+USER seluser
+
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
