@@ -36,15 +36,14 @@ class WallapopScraper:
     def _init_driver(self):
         """Initialize Chrome WebDriver with enhanced anti-detection"""
         chrome_options = Options()
+        chrome_options.binary_location = "/usr/bin/google-chrome"
         
         # Headless mode configuration
         if self.headless:
             chrome_options.add_argument('--headless=new')
         
         # Essential options
-        chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument("--disable-software-rasterizer")
         chrome_options.add_argument('--disable-dev-shm-usage')
         chrome_options.add_argument('--disable-blink-features=AutomationControlled')
         chrome_options.add_argument('--disable-gpu')
@@ -67,7 +66,7 @@ class WallapopScraper:
         chrome_options.add_experimental_option('useAutomationExtension', False)
 
         try:
-            service = Service(ChromeDriverManager().install())
+            service = Service("/usr/local/bin/chromedriver")
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
             self.driver.set_page_load_timeout(60)
             
