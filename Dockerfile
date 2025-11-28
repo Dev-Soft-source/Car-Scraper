@@ -19,7 +19,7 @@ RUN apt-get update -y && apt-get install -y \
     libx11-dev \
     libxss1 \
     libcups2 \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-xlib-2.0-0 \
     libnspr4 \
     libnss3 \
     libnss3-dev \
@@ -34,7 +34,7 @@ RUN apt-get update -y && apt-get install -y \
     libpangocairo-1.0-0 \
     libpango-1.0-0 \
     libgbm1 \
-    libegl1-mesa \
+    libegl1 \
     libasound2 \
     libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
