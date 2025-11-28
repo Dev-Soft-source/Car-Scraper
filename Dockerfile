@@ -4,7 +4,7 @@ FROM python:3.13-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies including libraries required by Chrome
+# Install system dependencies required by Chrome
 RUN apt-get update -y && apt-get install -y \
     wget \
     curl \
@@ -43,10 +43,9 @@ RUN apt-get update -y && apt-get install -y \
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && dpkg -i google-chrome-stable_current_amd64.deb \
     && apt-get install -f -y \
-    && rm google-chrome-stable_current_amd64.deb \
-    && ln -s /usr/bin/google-chrome-stable /usr/bin/google-chrome
+    && rm google-chrome-stable_current_amd64.deb
 
-# Install Chromedriver that matches installed Chrome
+# Install Chromedriver matching the installed Chrome version
 RUN LATEST_CHROMEDRIVER=$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE) \
     && wget https://chromedriver.storage.googleapis.com/${LATEST_CHROMEDRIVER}/chromedriver_linux64.zip \
     && unzip chromedriver_linux64.zip \
@@ -61,11 +60,11 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 # Copy backend code
 COPY backend /app/backend
 
-# Set environment path for Python
+# Set Python path
 ENV PYTHONPATH="${PYTHONPATH}:/app"
 
 # Expose FastAPI port
 EXPOSE 8000
 
-# Run FastAPI
+# Run FastAPI server
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
