@@ -40,7 +40,7 @@ class WallapopScraper:
         
         # Headless mode configuration
         if self.headless:
-            chrome_options.add_argument('--headless=new')
+            chrome_options.add_argument('--headless=chrome')
         
         # Essential options
         chrome_options.add_argument('--no-sandbox')
