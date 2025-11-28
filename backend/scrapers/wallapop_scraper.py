@@ -34,73 +34,61 @@ class WallapopScraper:
         self.driver = None
         
     def _init_driver(self):
-        """Initialize Chrome WebDriver for selenium/standalone-chrome"""
-
+        """Initialize Chrome WebDriver with enhanced anti-detection"""
         chrome_options = Options()
-
-        # ----- HEADLESS -----
+        chrome_options.binary_location = "/usr/bin/google-chrome"
+        
+        # Headless mode configuration
         if self.headless:
-            chrome_options.add_argument("--headless=new")
-
-        # ----- BASIC OPTIONS -----
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--window-size=1920,1080")
-        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+            chrome_options.add_argument('--headless=chrome')
+        
+        # Essential options
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_argument('--disable-blink-features=AutomationControlled')
         chrome_options.add_argument("--remote-debugging-port=9222")
-
-        # ----- USER AGENT -----
-        chrome_options.add_argument(
-            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-        )
-
-        # ----- LANG & PREFS -----
-        chrome_options.add_argument("--lang=es-ES")
-        chrome_options.add_experimental_option("prefs", {
-            "intl.accept_languages": "es-ES,es;q=0.9,en;q=0.8",
+        chrome_options.add_argument('--disable-gpu')
+        chrome_options.add_argument('--window-size=1920,1080')
+        
+        # Realistic user agent
+        chrome_options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36')
+        
+        # Language and locale
+        chrome_options.add_argument('--lang=es-ES')
+        chrome_options.add_experimental_option('prefs', {
+            'intl.accept_languages': 'es-ES,es;q=0.9,en;q=0.8',
             "profile.default_content_setting_values.notifications": 2,
-            "profile.managed_default_content_settings.images": 1,
+            "profile.default_content_settings.popups": 0,
+            "profile.managed_default_content_settings.images": 1  # Disable images for speed
         })
-
-        # ----- REMOVE AUTOMATION FLAGS -----
-        chrome_options.add_experimental_option(
-            "excludeSwitches", ["enable-automation", "enable-logging"]
-        )
-        chrome_options.add_experimental_option("useAutomationExtension", False)
+        
+        # Remove automation flags
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
+        chrome_options.add_experimental_option('useAutomationExtension', False)
 
         try:
-            # ***********************************************
-            # ❗ THE MOST IMPORTANT FIX
-            # Use Remote WebDriver instead of ChromeDriver
-            # ***********************************************
-            self.driver = webdriver.Remote(
-                command_executor="http://localhost:4444/wd/hub",
-                options=chrome_options
-            )
-
+            service = Service("/usr/local/bin/chromedriver")
+            self.driver = webdriver.Chrome(service=service, options=chrome_options)
             self.driver.set_page_load_timeout(60)
-
-            # ----- STEALTH -----
+            
+            # Enhanced stealth scripts
             stealth_js = """
                 Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-                Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});
+                Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
                 Object.defineProperty(navigator, 'languages', {get: () => ['es-ES', 'es']});
-                window.chrome = { runtime: {} };
+                window.chrome = {runtime: {}};
+                Object.defineProperty(navigator, 'permissions', {
+                    get: () => ({query: () => Promise.resolve({state: 'granted'})})
+                });
             """
-
-            self.driver.execute_cdp_cmd(
-                "Page.addScriptToEvaluateOnNewDocument",
-                {"source": stealth_js}
-            )
-
+            self.driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {'source': stealth_js})
+            
             logger.info("✓ Chrome WebDriver initialized successfully")
             return True
-
+            
         except Exception as e:
             logger.error(f"✗ Failed to initialize WebDriver: {e}")
             raise
-
 
     def _human_delay(self, min_seconds: float = 2, max_seconds: float = 5):
         """Add random delay to simulate human behavior"""
