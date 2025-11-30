@@ -23,7 +23,7 @@ from bs4 import BeautifulSoup
 
 # Database/service imports (adjust to your project)
 from backend.database.config import SessionLocal
-from models.models import Search, Listing, Log, Statistics, UserSettings
+from backend.models.models import Search, Listing, Log, Statistics, UserSettings
 
 # For sending email
 import smtplib
