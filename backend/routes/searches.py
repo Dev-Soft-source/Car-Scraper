@@ -24,6 +24,7 @@ class SearchCreate(BaseModel):
     model: Optional[str] = None
     year_from: Optional[int] = None
     year_to: Optional[int] = None
+    interval: Optional[int] = None
     category: Optional[int] = None
     mileage_max: Optional[int] = None
     power: Optional[int] = None
@@ -44,6 +45,7 @@ class SearchUpdate(BaseModel):
     model: Optional[str] = None
     year_from: Optional[int] = None
     year_to: Optional[int] = None
+    interval: Optional[int] = None
     category: Optional[int] = None
     mileage_max: Optional[int] = None
     power: Optional[int] = None
@@ -66,6 +68,7 @@ class SearchResponse(BaseModel):
     category: Optional[int]
     year_from: Optional[int]
     year_to: Optional[int]
+    interval: Optional[int] = None
     mileage_max: Optional[int]
     price_min: Optional[float]
     price_max: Optional[float]
@@ -147,9 +150,7 @@ def start_search(search_id: str, current_user: User = Depends(get_current_user),
     if not search:
         raise HTTPException(status_code=404, detail='Search not found')
     # Get user settings for interval
-    
-    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
-    interval = settings.scraping_interval if settings else 60
+    interval = search.interval if search else 60
 
     scraper_status["running_loop"] = True
     success = scraping_service.start_search_scraping(search_id, current_user.id, interval)

@@ -4,12 +4,15 @@ from sqlalchemy.orm import Session
 from backend.database.config import SessionLocal
 from backend.models.models import Search, Listing, Log, Statistics, UserSettings
 from backend.scrapers.wallapop_scraper import WallapopScraper
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
 from datetime import datetime
 import logging
 import json
 
 logger = logging.getLogger(__name__)
-
 class ScrapingService:
     def __init__(self):
         self.scheduler = BackgroundScheduler()
@@ -28,7 +31,7 @@ class ScrapingService:
             self.scheduler.shutdown()
             logger.info("Scraping scheduler stopped")
     
-    def start_search_scraping(self, search_id: str, user_id: str, interval_minutes: int = 60):
+    def start_search_scraping(self, search_id: str, user_id: str, interval_hours: int = 24):
         """Start periodic scraping for a search"""
         if search_id in self.active_jobs:
             logger.warning(f"Scraping already active for search {search_id}")
@@ -38,7 +41,7 @@ class ScrapingService:
             # Add job to scheduler
             job = self.scheduler.add_job(
                 func=self._scrape_search,
-                trigger=IntervalTrigger(minutes=interval_minutes),
+                trigger=IntervalTrigger(hours=interval_hours),
                 args=[search_id, user_id],
                 id=f"scrape_{search_id}",
                 replace_existing=True
@@ -49,7 +52,7 @@ class ScrapingService:
             # Run immediately
             self._scrape_search(search_id, user_id)
             
-            logger.info(f"Started scraping for search {search_id} with {interval_minutes} minute interval")
+            logger.info(f"Started scraping for search {search_id} with {interval_hours} minute interval")
             return True
             
         except Exception as e:
@@ -145,7 +148,7 @@ class ScrapingService:
                     existing = db.query(Listing).filter(
                         Listing.platform_id == listing_data.get('platform_id')
                     ).first()
-                    print("ssssssssssssssssssssssssss: ", listing_data)
+  #                  print("ssssssssssssssssssssssssss: ", listing_data)
                     # Calculate if below target
                     target_met = False
                     target_price = getattr(search, 'target_price', None)
@@ -250,7 +253,19 @@ class ScrapingService:
             )
             db.add(success_log)
             db.commit()
-            
+
+            user_email = os.getenv('SMTP_USER', 'gistangjie@outlook.com')
+            if user_email:
+                subject = f"Scraping Results for {search.name}"
+                body = (
+                    f"Scraping completed for search: {search.name}\n\n"
+                    f"New listings: {new_count}\n"
+                    f"Updated listings: {updated_count}\n"
+                    f"Below target: {below_target_count}\n"
+                    f"Total scraped: {len(scraped_listings)}"
+                )
+                self.send_gmail_notification(user_email, subject, body)
+                
             logger.info(f"Scraping completed: {new_count} new, {updated_count} updated, {below_target_count} below target")
             
         except Exception as e:
@@ -268,6 +283,34 @@ class ScrapingService:
             
         finally:
             db.close()
+       
 
+    def send_gmail_notification(self, to_email: str, subject: str, body: str):
+        #from_email = os.getenv('SMTP_FROM', 'radugistang1@gmail.com')
+        from_email = os.environ.get('SMTP_FROM', 'radugistang1@gmail.com')
+        app_password = os.environ.get('SMTP_PASSWORD')  # generate this in Google Account
+        print("From_email: ", from_email)
+
+        sender_email = str(from_email)
+        sender_password = str(app_password)
+        
+        # Create the email
+        msg = MIMEMultipart()
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+            server.quit()
+            print(f"Email sent to {to_email}")
+        except Exception as e:
+            print(f"Error sending email: {e}")
+
+   
 # Global instance
 scraping_service = ScrapingService()

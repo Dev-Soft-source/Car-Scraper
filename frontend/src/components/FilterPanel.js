@@ -45,7 +45,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
         {/* Make */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Make
+            Marca
           </label>
           <input
             type="text"
@@ -60,7 +60,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
         {/* Model */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Model
+            Modelo
           </label>
           <input
             type="text"
@@ -75,7 +75,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
         {/* Location */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Location
+            Ubicación
           </label>
           <input
             type="text"
@@ -90,7 +90,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
         {/* Min Price */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Min Price (€)
+            Precio mínimo (€)
           </label>
           <input
             type="number"
@@ -105,7 +105,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
         {/* Max Price */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Max Price (€)
+            Precio máximo (€)
           </label>
           <input
             type="number"
@@ -119,7 +119,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
         {/* Seller Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Seller Type
+            Tipo de vendedor
           </label>
           <select
             value={filters.seller_type || ''}

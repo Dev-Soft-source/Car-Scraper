@@ -26,6 +26,7 @@ class Search(Base):
     name = Column(String, nullable=False)
     description = Column(Text)
     keyword = Column(String)
+    interval = Column(Integer)
     make = Column(String)
     model = Column(String)
     year_from = Column(Integer)

@@ -31,6 +31,17 @@ const Settings = () => {
      "600", "607", "612 Scaglietti", "626", "650S", "695", "7", "7.0", "718 Boxster", "718 Cayman", "718 Spyder", "75", "806", "807", 
      "812", "8C Competizione", "9", "9-3", "9-3X", "9-4X", "9-5", "911", "A1", "A1 allstreet", "A110", "A2", "A3", "A3 allstreet", "A4", "A4 Allroad"]; // Array of car models
 
+  const fuelTypes = [
+    { label: "Gasolina", value: "gasoline" },
+    { label: "Diesel", value: "gasoil" },
+    { label: "Eléctrico", value: "electric-hybrid" },
+    { label: "Híbrido", value: "hybride" },
+    { label: "Híbrido enchufable", value: "hybride_plugin" },
+    { label: "Gas licuado (GPL)", value: "lpg" },
+    { label: "Gas natural (CNG)", value: "cng" },
+    { label: "Otros", value: "others" },
+  ];
+  
   useEffect(() => {
     
     if (!hasFetched.current) {
@@ -64,7 +75,7 @@ const Settings = () => {
       toast.error("Por favor, ingresa una URL");
       return;
     }
- 
+    
     try {
       if (editingUrlId) {
         await settingsService.updateSiteUrl(editingUrlId, newUrl);
@@ -76,7 +87,6 @@ const Settings = () => {
       }
       fetchSiteUrls(); // Fetch site URLs again to update the list
       setNewUrl(""); // Make sure to clear the input after adding/updating
-      console.log("handleAddOrUpdateUrl Url: ", newUrl);
     } catch (error) {
       toast.error("Error al guardar la URL");
     }
@@ -114,7 +124,7 @@ const Settings = () => {
       target_price: parseIntOrNull(editingSearch.target_price),
       price_min: parseIntOrNull(editingSearch.price_min) || 0,
       price_max: parseIntOrNull(editingSearch.price_max) || 0,
-      scraping_interval: parseIntOrNull(editingSearch.scraping_interval) || 0,
+      interval: parseIntOrNull(editingSearch.interval) || 24,
       keyword: editingSearch.keyword || "",
       category: parseIntOrNull(editingSearch.category),
       location: editingSearch.location || "",
@@ -136,7 +146,7 @@ const Settings = () => {
       target_price: parseIntOrNull(editingSearch.target_price),
       price_min: parseIntOrNull(editingSearch.price_min) || 0,
       price_max: parseIntOrNull(editingSearch.price_max) || 0,
-      scraping_interval: parseIntOrNull(editingSearch.scraping_interval) || 0,
+      interval: parseIntOrNull(editingSearch.interval) || 24,
       keyword: editingSearch.keyword || "",
       category: parseIntOrNull(editingSearch.category),
       location: editingSearch.location || "",
@@ -265,7 +275,7 @@ const Settings = () => {
                 year_to: "",
                 mileage_max: "",
                 is_active: true,
-                scraping_interval: 60,
+                interval: 24,
                 keyword: "Coches",
                 category: "100",
                 target_price: 1000,
@@ -298,10 +308,14 @@ const Settings = () => {
                   {search.make && `Make: ${search.make} `}
                   {search.model && `| Model: ${search.model} `}
                   {search.target_price && `| Target: €${search.target_price}`}
+                  {search.price_min && `| Min price: €${search.price_min}`}
+                  {search.price_max && `| Max price: €${search.price_max}`}
                   {search.keyword && `| Keyword: ${search.keyword}`}
                   {search.category && `| Category: ${search.category}`}
-                  {search.scraping_interval &&
-                    `| Interval: ${search.scraping_interval} min`}
+                  {search.power &&  `| Power: ${search.power}`}
+                  {search.mileage_max && `| Mileage: ${search.mileage_max}`}
+                  {search.interval &&
+                    `| Interval: ${search.interval} hours`}
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -371,15 +385,15 @@ const Settings = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Intervalo de rastreo (minutos)
+                    Intervalo de rastreo (horas)
                   </label>
                   <input
                     type="number"
-                    value={editingSearch.scraping_interval || 60}
+                    value={editingSearch.interval || 24}
                     onChange={(e) =>
                       setEditingSearch((prev) => ({
                         ...prev,
-                        scraping_interval: e.target.value,
+                        interval: e.target.value,
                       }))
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -521,20 +535,22 @@ const Settings = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tipo de combustible
+                      Combustible
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={editingSearch.fuel_type || ""}
-                    onChange={(e) =>
-                      setEditingSearch((prev) => ({
-                        ...prev,
-                        fuel_type: e.target.value,
-                      }))
-                    }
-                    placeholder="e.g., Diésel"
+                    onChange={(e) => setEditingSearch(prev => ({ ...prev, fuel_type: e.target.value }))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
+                  >
+                    <option value=""></option>
+                    {fuelTypes.map((fuel) => {
+                      return (
+                        <option key={fuel.value} value={fuel.value}>
+                          {fuel.label}
+                        </option>
+                      )
+                    })}
+                  </select>
                 </div>
 
                 <div>
@@ -606,7 +622,7 @@ const Settings = () => {
                   />
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Ubicación
                   </label>
@@ -621,7 +637,7 @@ const Settings = () => {
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
-                </div>
+                </div> */}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Seller Type</label>
@@ -636,7 +652,7 @@ const Settings = () => {
                   </select>
                 </div>
 
-                <div className="mt-10 ml-6">
+                <div className="mt-5 ml-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <input
                       type="checkbox"

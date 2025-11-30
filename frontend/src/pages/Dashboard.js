@@ -26,11 +26,11 @@ const Dashboard = () => {
   // Ask for notifications permission
   useEffect(() => {
     if(!isStart.current){
+      isStart.current = true;
       requestNotificationPermission();
       fetchStats();
-      const interval = setInterval(fetchStats, 5000);
+      const interval = setInterval(fetchStats, 7000);
       return () => clearInterval(interval);
-      isStart.current = true;
     }      
   }, []);
 
@@ -177,7 +177,7 @@ const Dashboard = () => {
   // Auto-refresh every 30s when scraper is running
   useEffect(() => {
     if (running) {
-      const interval = setInterval(fetchListings, 30000);
+      const interval = setInterval(fetchListings, 600000);
       return () => clearInterval(interval);
     }
   }, [running, fetchListings]);

@@ -21,7 +21,6 @@ export const playAlertSound = () => {
   gainNode.gain.setValueAtTime(0.3, audioContext.currentTime); // Start volume
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5); // Fade out
 
-  console.log("Alert sound playing...");
 
   // Start the oscillator
   oscillator.start(audioContext.currentTime);
@@ -31,7 +30,6 @@ export const playAlertSound = () => {
 
   // After the first sound finishes, play the second sound
   oscillator.onended = () => {
-    console.log("First alert finished, playing second sound...");
 
     // Second sound (example: a different tone or effect)
     const secondOscillator = audioContext.createOscillator();

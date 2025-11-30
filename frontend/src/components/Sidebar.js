@@ -26,15 +26,15 @@ const Sidebar = () => {
       <div className="border-b border-blue-800/50">
         <div className="flex items-center space-x-3">
             <img 
-            src="/logo.png"
+            src="/logo1.png"
             alt="Logo"
-            className="w-full h-[200px]"
+            className="w-full h-[150px]"
           />
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 pt-15">
         <ul className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
