@@ -9,7 +9,7 @@ const ListingCard = ({ listing, onToggleFavorite }) => {
     <div 
       data-testid="listing-card"
       className={`bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
-        isBelowTarget ? 'ring-2 ring-green-500 ring-offset-2' : ''
+        isBelowTarget ? 'ring-2 ring-blue-700 ring-offset-2' : ''
       }`}
     >
       {/* Image */}
@@ -41,7 +41,7 @@ const ListingCard = ({ listing, onToggleFavorite }) => {
         {/* Target Price Badge */}
         {isBelowTarget && (
           <div className="absolute top-3 left-3 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full animate-pulse">
-            Below Target 🎯
+            Por debajo del objetivo 🎯
           </div>
         )}
 
@@ -64,13 +64,13 @@ const ListingCard = ({ listing, onToggleFavorite }) => {
         <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
           {listing.make && (
             <div className="flex items-center text-gray-600">
-              <span className="font-semibold">Make:</span>
+              <span className="font-semibold">Marca:</span>
               <span className="ml-1">{listing.make}</span>
             </div>
           )}
           {listing.model && (
             <div className="flex items-center text-gray-600">
-              <span className="font-semibold">Model:</span>
+              <span className="font-semibold">Modelo:</span>
               <span className="ml-1">{listing.model}</span>
             </div>
           )}
@@ -115,7 +115,7 @@ const ListingCard = ({ listing, onToggleFavorite }) => {
             </div>
             {listing.average_price && (
               <div className="text-xs text-gray-500">
-                Avg: €{listing.average_price.toLocaleString()}
+                Promedio: €{listing.average_price.toLocaleString()}
               </div>
             )}
           </div>
@@ -128,7 +128,7 @@ const ListingCard = ({ listing, onToggleFavorite }) => {
               data-testid="view-listing-button"
               className="flex items-center space-x-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
             >
-              <span className="text-sm font-medium">View</span>
+              <span className="text-sm font-medium">Vista</span>
               <ExternalLink size={14} />
             </a>
           )}
@@ -137,7 +137,7 @@ const ListingCard = ({ listing, onToggleFavorite }) => {
         {/* Last Updated */}
         {listing.last_updated && (
           <div className="text-xs text-gray-400">
-            Updated: {format(new Date(listing.last_updated), 'MMM dd, yyyy HH:mm')}
+            Actualizada: {format(new Date(listing.last_updated), 'MMM dd, yyyy HH:mm')}
           </div>
         )}
       </div>

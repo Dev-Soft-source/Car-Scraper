@@ -7,7 +7,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 mb-6" data-testid="filter-panel">
+    <div className="bg-[#e4f5f5] rounded-xl shadow-lg p-6 mb-6" data-testid="filter-panel">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <Filter className="text-blue-600" size={20} />
@@ -135,7 +135,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
 
         {/* Target Price Only */}
         <div className="flex items-end">
-          <label className="flex items-center space-x-2 cursor-pointer">
+          <label className="flex items-center space-x-2 cursor-pointer mb-4">
             <input
               type="checkbox"
               checked={filters.target_price_only || false}
@@ -164,7 +164,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
               key={option.value}
               onClick={() => handleChange('sort', option.value)}
               data-testid={`sort-${option.value}`}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg bg-[#dcdcdc] hover:bg-[#afaeae] text-sm font-medium transition-all ${
                 filters.sort === option.value
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

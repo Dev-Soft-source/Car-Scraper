@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [filters, setFilters] = useState({});
   const [loading, setLoading] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const [running, setRunning] = useState(false);
   const [stopping, setStopping] = useState(true);
@@ -23,37 +24,32 @@ const Dashboard = () => {
 
   const hasFetchedSearches = useRef(false);
 
-  // Ask for notifications permission
+  // Request notifications on first load
   useEffect(() => {
-    if(!isStart.current){
+    if (!isStart.current) {
       isStart.current = true;
       requestNotificationPermission();
       fetchStats();
       const interval = setInterval(fetchStats, 7000);
       return () => clearInterval(interval);
-    }      
+    }
   }, []);
 
   const fetchStats = async () => {
     try {
       const response = await searchService.getState();
-      if (response.data.running){
+      if (response.data.running) {
         setRunning(true);
         setStopping(false);
-      }else
-      {
+      } else {
         setRunning(false);
         setStopping(true);
       }
-      // setStats(response.data);
     } catch (error) {
       console.error('Error fetching stats:', error);
-    } finally {
-      // setLoading(false);
     }
   };
 
-  // Fetch searches
   const fetchSearches = async () => {
     try {
       const response = await searchService.getAllSearches();
@@ -68,45 +64,45 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch listings
-  const fetchListings = useCallback(async () => {
-    
-    if (!activeSearch) return;
-    
-    setLoading(true);
-    try {
-      const response = await listingService.getListingsBySearch(activeSearch, filters);
-      const newListings = response.data;
+  const fetchListings = useCallback(
+    async () => {
+      if (!activeSearch) return;
 
-      // Notification for new "below target" listings
-      if (listings.length > 0) {
-        const newBelowTarget = newListings.filter(
-          nl => nl.target_price_met && !listings.find(ol => ol.id === nl.id)
-        );
+      setLoading(true);
+      try {
+        const response = await listingService.getListingsBySearch(activeSearch, filters);
+        const newListings = response.data;
 
-        if (newBelowTarget.length > 0) {
-          
-          newBelowTarget.forEach(listing => {
-            showNotification('New Listing Below Target!', {
-              body: `${listing.title || listing.description} - €${listing.price}`,
-              icon: '/favicon.ico',
+        // Notification for new below-target listings
+        if (listings.length > 0) {
+          const newBelow = newListings.filter(
+            nl => nl.target_price_met && !listings.find(ol => ol.id === nl.id)
+          );
+
+          if (newBelow.length > 0) {
+            newBelow.forEach(listing => {
+              showNotification('New Listing Below Target!', {
+                body: `${listing.title || listing.description} - €${listing.price}`,
+                icon: '/favicon.ico',
+              });
             });
-          });
-          toast.success(`${newBelowTarget.length} ¡nuevo(s) anuncio(s) por debajo del precio objetivo!`);
+
+            toast.success(`${newBelow.length} ¡nuevo(s) anuncio(s) por debajo del precio objetivo!`);
+          }
         }
+
+        setListings(newListings);
+        applyFilters(newListings, filters);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+        toast.error('Error al obtener los anuncios');
+      } finally {
+        setLoading(false);
       }
+    },
+    [activeSearch, filters, listings]
+  );
 
-      setListings(newListings);
-      applyFilters(newListings, filters);
-    } catch (error) {
-      console.error('Error fetching listings:', error);
-      toast.error('Error al obtener los anuncios');
-    } finally {
-      setLoading(false);
-    }
-  }, [activeSearch, filters, listings]);
-
-  // Filter logic
   const applyFilters = (data, currentFilters) => {
     let filtered = [...data];
 
@@ -149,22 +145,27 @@ const Dashboard = () => {
       filtered = filtered.filter(l => l.target_price_met);
     }
 
-    // Sorting
-    const sortBy = currentFilters.sort;
-    if (sortBy) {
+    if (currentFilters.showOnlyBelowTarget) {
+      filtered = filtered.filter(l => l.target_price_met);
+    }
+
+    if (currentFilters.onlyFavorites) {
+      filtered = filtered.filter(l => l.is_favorite);
+    }
+
+    if (currentFilters.sort) {
       const sorters = {
         'price_asc': (a, b) => a.price - b.price,
         'price_desc': (a, b) => b.price - a.price,
         'date_desc': (a, b) => new Date(b.last_updated) - new Date(a.last_updated),
         'date_asc': (a, b) => new Date(a.last_updated) - new Date(b.last_updated),
       };
-      filtered.sort(sorters[sortBy]);
+      filtered.sort(sorters[currentFilters.sort]);
     }
 
     setFilteredListings(filtered);
   };
 
-  // Fetch searches only once
   useEffect(() => {
     if (!hasFetchedSearches.current) {
       fetchSearches();
@@ -174,7 +175,6 @@ const Dashboard = () => {
 
   useEffect(() => { fetchListings(); }, [activeSearch]);
 
-  // Auto-refresh every 30s when scraper is running
   useEffect(() => {
     if (running) {
       const interval = setInterval(fetchListings, 600000);
@@ -182,7 +182,6 @@ const Dashboard = () => {
     }
   }, [running, fetchListings]);
 
-  // Re-filter on filter change
   useEffect(() => applyFilters(listings, filters), [filters, listings]);
 
   const handleToggleFavorite = async (listingId) => {
@@ -197,7 +196,7 @@ const Dashboard = () => {
     }
   };
 
-  // 🔥 START/STOP SCRAPER BUTTON DISABLED UNTIL RESPONSE
+  // Start
   const handleStart = async () => {
     if (!activeSearch) {
       toast.error('Por favor, selecciona primero una búsqueda');
@@ -210,10 +209,11 @@ const Dashboard = () => {
     } catch {
       toast.error('Error al iniciar/detener el rastreador');
     } finally {
-      setRunning(false); // re-enable button
+      setRunning(false);
     }
   };
 
+  // Stop
   const handleStop = async () => {
     setStopping(true);
     try {
@@ -225,110 +225,94 @@ const Dashboard = () => {
     } catch {
       toast.error('Error al iniciar/detener el rastreador');
     } finally {
-      setStopping(false); // re-enable button
+      setStopping(false);
     }
   };
 
   const clearFilters = () => setFilters({});
+  const showAllListings = () => setFilters(prev => ({ ...prev, showOnlyBelowTarget: false, onlyFavorites: false }));
+  const showBelowTarget = () => setFilters(prev => ({ ...prev, showOnlyBelowTarget: true, onlyFavorites: false }));
+  const showFavoritesOnly = () => setFilters(prev => ({ ...prev, onlyFavorites: true, showOnlyBelowTarget: false }));
 
   return (
     <div data-testid="dashboard-page">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Panel</h1>
-          <p className="text-gray-600 mt-1">
-            Monitorear y analizar los anuncios de Wallapop
-          </p>
-        </div>
 
-        <div className="flex items-center space-x-3">          
+      {/* 🔥 Sticky + Blurred Header */}
+      <div className="sticky top-0 z-50 backdrop-blur-md pb-4 mb-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Panel</h1>
+            <p className="text-gray-600 mt-1">
+              Monitorear y analizar los anuncios de Wallapop
+            </p>
+          </div>
 
-          {/* Start/Stop Scraper */}
-          <button
-            onClick={handleStop}
-            data-testid="start-stop-button"
-            disabled={!stopping || running}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all transform 
-              ${
-                 running
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:scale-105"
-              }
-              ${
-                "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-              }`}
-          >
-            {running ? (
-              <>
-                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full">
-                  {" "}
-                </div>
-                <span>Procesando...</span>
-              </>
-            ) : (
-              <>
-                <Play size={20} />
-                <span>Iniciar el rastreador</span>
-              </>
-            )}
-          </button>
+          <div className="flex items-center space-x-3">
 
-          <button
-            onClick={handleStart}
-            data-testid="start-stop-button"
-            disabled={stopping || !running}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all transform 
-              ${
-                stopping
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:scale-105"
-              }
-              ${
-                "bg-red-500 hover:bg-red-600 text-white"
-              }`}
-          >
-            {stopping ? (
-              <>
-                <Square size={20} />
-                <span>Procesando...</span>
-              </>
-            ) : (
-              <>
-                <Square size={20} />
-                <span>Detener el rastreador</span>
-              </>
-            )}
-          </button>
+            {/* Start */}
+            <button
+              onClick={handleStop}
+              disabled={!stopping || running}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all transform 
+                ${running ? "opacity-50 cursor-not-allowed" : "hover:scale-105"}
+                bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white`}
+            >
+              {running ? (
+                <>
+                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                  <span>Procesando...</span>
+                </>
+              ) : (
+                <>
+                  <Play size={20} />
+                  <span>Iniciar el rastreador</span>
+                </>
+              )}
+            </button>
 
-          {/* Refresh */}
-          <button
-            onClick={fetchListings}
-            data-testid="refresh-button"
-            className="p-3 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg transition-all"
-            disabled={loading}
-          >
-            <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
-          </button>
+            {/* Stop */}
+            <button
+              onClick={handleStart}
+              disabled={stopping || !running}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all transform 
+                ${stopping ? "opacity-50 cursor-not-allowed" : "hover:scale-105"}
+                bg-red-500 hover:bg-red-600 text-white`}
+            >
+              {stopping ? (
+                <>
+                  <Square size={20} />
+                  <span>Procesando...</span>
+                </>
+              ) : (
+                <>
+                  <Square size={20} />
+                  <span>Detener el rastreador</span>
+                </>
+              )}
+            </button>
 
-          {/* Charts toggle */}
-          <button
-            onClick={() => setShowCharts(!showCharts)}
-            data-testid="toggle-charts-button"
-            className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all 
-              ${
-                showCharts
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }
-            `}
-          >
-            <BarChart3 size={20} />
-            <span>Gráficos</span>
-          </button>
+            <button
+              onClick={fetchListings}
+              className="p-3 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg transition-all"
+              disabled={loading}
+            >
+              <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
+            </button>
+
+            <button
+              onClick={() => setShowCharts(!showCharts)}
+              className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all 
+                ${showCharts ? "bg-purple-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+            >
+              <BarChart3 size={20} />
+              <span>Gráficos</span>
+            </button>
+
+          </div>
         </div>
       </div>
 
+      {/* Everything else stays EXACTLY the same... */}
       {/* Searches */}
       {searches.length > 0 && (
         <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
@@ -338,7 +322,6 @@ const Dashboard = () => {
           <select
             value={activeSearch || ""}
             onChange={(e) => setActiveSearch(e.target.value)}
-            data-testid="search-selector"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             {searches.map((search) => (
@@ -351,11 +334,25 @@ const Dashboard = () => {
       )}
 
       {/* Filter Panel */}
-      <FilterPanel
-        filters={filters}
-        setFilters={setFilters}
-        onClear={clearFilters}
-      />
+      <div className="bg-[#e4f5f5] rounded-xl shadow-lg mb-6 overflow-hidden">
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-[#38b7b7] text-left font-semibold text-gray-800 hover:bg-[#2e9797]"
+        >
+          <span>Filtros</span>
+          <span className={`transform transition-transform ${showFilters ? "rotate-180" : "rotate-0"}`}>▾</span>
+        </button>
+
+        <div
+          className={`transition-all duration-300 bg-[#a0d9db] ease-in-out ${
+            showFilters ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+          } overflow-hidden`}
+        >
+          <div className="p-4 border-t">
+            <FilterPanel filters={filters} setFilters={setFilters} onClear={clearFilters} />
+          </div>
+        </div>
+      </div>
 
       {/* Charts */}
       {showCharts && filteredListings.length > 0 && (
@@ -364,41 +361,33 @@ const Dashboard = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-blue-600 rounded-xl p-6 text-white shadow-lg">
+        <div onClick={showAllListings} className="bg-blue-600 rounded-xl p-6 text-white shadow-lg cursor-pointer hover:bg-blue-700 transition">
           <div className="text-sm opacity-90">Total de anuncios</div>
-          <div className="text-3xl font-bold mt-2" data-testid="total-listings">
-            {filteredListings.length}
-          </div>
+          <div className="text-3xl font-bold mt-2">{filteredListings.length}</div>
         </div>
 
-        <div className="bg-green-600 rounded-xl p-6 text-white shadow-lg">
+        <div onClick={showBelowTarget} className="bg-green-600 rounded-xl p-6 text-white shadow-lg cursor-pointer hover:bg-green-700 transition">
           <div className="text-sm opacity-90">Por debajo del objetivo</div>
-          <div
-            className="text-3xl font-bold mt-2"
-            data-testid="below-target-count"
-          >
-            {filteredListings.filter((l) => l.target_price_met).length}
+          <div className="text-3xl font-bold mt-2">
+            {filteredListings.filter(l => l.target_price_met).length}
           </div>
         </div>
 
-        <div className="bg-purple-600 rounded-xl p-6 text-white shadow-lg">
+        <div onClick={showFavoritesOnly} className="bg-purple-600 rounded-xl p-6 text-white shadow-lg cursor-pointer hover:bg-purple-700 transition">
           <div className="text-sm opacity-90">Favoritos</div>
-          <div
-            className="text-3xl font-bold mt-2"
-            data-testid="favorites-count"
-          >
-            {filteredListings.filter((l) => l.is_favorite).length}
+          <div className="text-3xl font-bold mt-2">
+            {filteredListings.filter(l => l.is_favorite).length}
           </div>
         </div>
 
         <div className="bg-orange-600 rounded-xl p-6 text-white shadow-lg">
           <div className="text-sm opacity-90">Precio promedio</div>
-          <div className="text-3xl font-bold mt-2" data-testid="avg-price">
+          <div className="text-3xl font-bold mt-2">
             €
             {filteredListings.length > 0
               ? Math.round(
                   filteredListings.reduce((sum, l) => sum + (l.price || 0), 0) /
-                    filteredListings.length
+                  filteredListings.length
                 ).toLocaleString()
               : "0"}
           </div>
@@ -408,24 +397,18 @@ const Dashboard = () => {
       {/* Listings */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
         </div>
       ) : filteredListings.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredListings.map((listing) => (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              onToggleFavorite={handleToggleFavorite}
-            />
+            <ListingCard key={listing.id} listing={listing} onToggleFavorite={handleToggleFavorite} />
           ))}
         </div>
       ) : (
         <div className="text-center py-20">
           <div className="text-6xl mb-4">📦</div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
-            No se encontraron anuncios
-          </h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No se encontraron anuncios</h3>
           <p className="text-gray-600">
             {searches.length === 0
               ? "Crea una búsqueda en Configuración para comenzar a rastrear"
@@ -433,6 +416,7 @@ const Dashboard = () => {
           </p>
         </div>
       )}
+
     </div>
   );
 };
