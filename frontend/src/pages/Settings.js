@@ -41,6 +41,10 @@ const Settings = () => {
     { label: "Gas natural (CNG)", value: "cng" },
     { label: "Otros", value: "others" },
   ];
+
+  const categroies = [
+    { label: "Coches", value: "100"}
+  ]
   
   useEffect(() => {
     
@@ -229,7 +233,7 @@ const Settings = () => {
             className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
           >
             <Plus size={20} />
-            <span>{editingUrlId ? "Save" : "Add"}</span>
+            <span>{editingUrlId ? "Ahorrar" : "Agregar"}</span>
           </button>
         </div>
 
@@ -321,15 +325,15 @@ const Settings = () => {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setEditingSearch(search)}
-                  className="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
+                  className="px-3 py-1 bg-blue-200 text-blue-600 rounded hover:bg-blue-300 transition-colors"
                 >
-                  Edit
+                  Editar
                 </button>
                 <button
                   onClick={() => handleDeleteSearch(search.id)}
-                  className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors"
+                  className="px-3 py-1 bg-red-200 text-red-600 rounded hover:bg-red-300 transition-colors"
                 >
-                  Delete
+                  Borrar
                 </button>
               </div>
             </div>
@@ -341,7 +345,7 @@ const Settings = () => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <h3 className="text-xl font-bold mb-4">
-                {editingSearch.id ? `Edit Search - ${editingSearch.site_url}` : `Create New Search - url:  ${newUrl}`}
+                {editingSearch.id ? `Editar búsqueda - ${editingSearch.site_url}` : `Crear nueva búsqueda - url:  ${newUrl}`}
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -349,7 +353,7 @@ const Settings = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name
+                    Nombre
                   </label>
                   <input
                     type="text"
@@ -367,7 +371,7 @@ const Settings = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
+                    Descripción
                   </label>
                   <input
                     type="text"
@@ -422,18 +426,20 @@ const Settings = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Categoría
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={editingSearch.category || ""}
-                    onChange={(e) =>
-                      setEditingSearch((prev) => ({
-                        ...prev,
-                        category: e.target.value,
-                      }))
-                    }
-                    placeholder="e.g., 100"
+                    onChange={(e) => setEditingSearch(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
+                  >
+                    {categroies.map((fuel) => {
+                      return (
+                        <option key={fuel.value} value={fuel.value}>
+                          {fuel.label}
+                        </option>
+                      )
+                    })}
+                  </select>
+                  
                 </div>
 
                 <div>
@@ -640,7 +646,7 @@ const Settings = () => {
                 </div> */}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Seller Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de vendedor</label>
                   <select
                     value={editingSearch.seller || ''}
                     onChange={(e) => setEditingSearch(prev => ({ ...prev, seller: e.target.value }))}
@@ -648,7 +654,7 @@ const Settings = () => {
                   >
                     <option value=""></option>
                     <option value="Paticular">Paticular</option>
-                    <option value="Professional">Professional</option>
+                    <option value="Professional">Profesional</option>
                   </select>
                 </div>
 
@@ -665,8 +671,8 @@ const Settings = () => {
                       }
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
-                    <span className="text-sm font-medium text-gray-700">
-                      Active
+                    <span className="text-sm font-medium text-gray-700 pl-1">
+                        Activa
                     </span>
                   </label>
                 </div>
@@ -677,14 +683,14 @@ const Settings = () => {
                   onClick={() => setEditingSearch(null)}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   onClick={handleSaveSearch}
                   data-testid="save-search-button"
                   className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
                 >
-                  Save
+                  Ahorrar
                 </button>
               </div>
             </div>

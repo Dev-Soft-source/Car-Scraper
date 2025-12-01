@@ -4,15 +4,15 @@ import { Settings, Play, Filter, BarChart3, Bell } from 'lucide-react';
 const UserGuide = () => {
   return (
     <div data-testid="user-guide-page" className="max-w-4xl">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">User Guide</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Guía de Usuario</h1>
 
       <div className="space-y-6">
         {/* Introduction */}
         <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-          <h2 className="text-2xl font-bold mb-3">Welcome to Wallapop Scraper!</h2>
+          <h2 className="text-2xl font-bold mb-3">¡Bienvenido a Wallapop Scraper!</h2>
           <p className="text-blue-100">
-            This application automatically scrapes Wallapop listings based on your criteria and alerts you
-            when items are priced below your target. Follow this guide to get started.
+            Esta aplicación extrae automáticamente anuncios de Wallapop según tus criterios y te avisa cuando
+            los artículos están por debajo de tu precio objetivo. Sigue esta guía para comenzar.
           </p>
         </div>
 
@@ -22,16 +22,16 @@ const UserGuide = () => {
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <span className="text-xl font-bold text-blue-600">1</span>
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Configure Your Search</h2>
+            <h2 className="text-xl font-bold text-gray-900">Configura tu búsqueda</h2>
           </div>
           <div className="ml-13 space-y-3 text-gray-700">
-            <p>Navigate to <strong>Settings</strong> and create a new search:</p>
+            <p>Navega a <strong>Configuración</strong> y crea una nueva búsqueda:</p>
             <ul className="list-disc ml-6 space-y-2">
-              <li>Give your search a descriptive name</li>
-              <li>Specify criteria: make, model, year range, price range, location, etc.</li>
-              <li>Set your <strong>target price</strong> - you'll be alerted when listings fall below this</li>
-              <li>Choose if you want to track private sellers, professional sellers, or both</li>
-              <li>Mark the search as active to include it in scraping</li>
+              <li>Ponle un nombre descriptivo</li>
+              <li>Especifica criterios: marca, modelo, rango de años, precio, ubicación, etc.</li>
+              <li>Establece tu <strong>precio objetivo</strong> — recibirás alertas cuando los anuncios estén por debajo</li>
+              <li>Elige si quieres rastrear vendedores particulares, profesionales o ambos</li>
+              <li>Marca la búsqueda como activa para incluirla en el scraping</li>
             </ul>
           </div>
         </div>
@@ -42,15 +42,15 @@ const UserGuide = () => {
             <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
               <Settings className="text-purple-600" size={24} />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Configure Scraping Settings</h2>
+            <h2 className="text-xl font-bold text-gray-900">Configura los ajustes de scraping</h2>
           </div>
           <div className="ml-13 space-y-3 text-gray-700">
-            <p>In the <strong>Settings</strong> page, configure:</p>
+            <p>En la página de <strong>Configuración</strong>, define:</p>
             <ul className="list-disc ml-6 space-y-2">
-              <li><strong>Scraping Interval:</strong> How often to check for new listings (in minutes)</li>
-              <li><strong>Keywords:</strong> General search terms to filter listings</li>
-              <li><strong>Price Range:</strong> Minimum and maximum price boundaries</li>
-              <li><strong>Site URLs:</strong> Add Wallapop URLs or other marketplace URLs to scrape</li>
+              <li><strong>Intervalo de scraping:</strong> frecuencia de revisión (en horas)</li>
+              <li><strong>Palabras clave:</strong> términos generales para filtrar anuncios</li>
+              <li><strong>Rango de precios:</strong> precio mínimo y máximo</li>
+              <li><strong>URLs del sitio:</strong> añade URLs de Wallapop u otros marketplaces</li>
             </ul>
           </div>
         </div>
@@ -61,16 +61,16 @@ const UserGuide = () => {
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <Play className="text-green-600" size={24} />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Start Scraping</h2>
+            <h2 className="text-xl font-bold text-gray-900">Iniciar el scraping</h2>
           </div>
           <div className="ml-13 space-y-3 text-gray-700">
-            <p>On the <strong>Dashboard</strong>:</p>
+            <p>En el <strong>Dashboard</strong>:</p>
             <ul className="list-disc ml-6 space-y-2">
-              <li>Select an active search from the dropdown</li>
-              <li>Click the <strong>Start Scraper</strong> button to begin collecting listings</li>
-              <li>The scraper runs in the background based on your configured interval</li>
-              <li>Click <strong>Stop Scraper</strong> to pause scraping</li>
-              <li>Use the <strong>Refresh</strong> button to manually update listings</li>
+              <li>Selecciona una búsqueda activa en el menú desplegable</li>
+              <li>Haz clic en <strong>Start Scraper</strong> para comenzar</li>
+              <li>El scraper se ejecuta en segundo plano según el intervalo configurado</li>
+              <li>Haz clic en <strong>Stop Scraper</strong> para pausar</li>
+              <li>Usa el botón <strong>Refresh</strong> para actualizar manualmente</li>
             </ul>
           </div>
         </div>
@@ -81,37 +81,37 @@ const UserGuide = () => {
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
               <Filter className="text-orange-600" size={24} />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Filter and Sort Results</h2>
+            <h2 className="text-xl font-bold text-gray-900">Filtrar y ordenar resultados</h2>
           </div>
           <div className="ml-13 space-y-3 text-gray-700">
-            <p>Use the filter panel to refine your results:</p>
+            <p>Usa el panel de filtros para refinar tus resultados:</p>
             <ul className="list-disc ml-6 space-y-2">
-              <li><strong>Search:</strong> Find listings by keyword</li>
-              <li><strong>Make/Model:</strong> Filter by vehicle make and model</li>
-              <li><strong>Price Range:</strong> Set min/max price filters</li>
-              <li><strong>Location:</strong> Filter by geographic location</li>
-              <li><strong>Seller Type:</strong> Show only private or professional sellers</li>
-              <li><strong>Below Target Price Only:</strong> Show only listings meeting your price target</li>
-              <li><strong>Sort:</strong> Order by price or date (newest/oldest first)</li>
+              <li><strong>Buscar:</strong> Encuentra anuncios por palabra clave</li>
+              <li><strong>Marca/Modelo:</strong> Filtra por marca y modelo</li>
+              <li><strong>Precio:</strong> Define precio mínimo y máximo</li>
+              <li><strong>Ubicación:</strong> Filtra por zona geográfica</li>
+              <li><strong>Tipo de vendedor:</strong> Particular o profesional</li>
+              <li><strong>Solo por debajo del precio objetivo</strong></li>
+              <li><strong>Ordenar:</strong> Por precio o fecha (más nuevo/más antiguo)</li>
             </ul>
           </div>
         </div>
 
-        {/* Alerts & Notifications */}
+        {/* Alerts */}
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
               <Bell className="text-red-600" size={24} />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Alerts & Notifications</h2>
+            <h2 className="text-xl font-bold text-gray-900">Alertas y notificaciones</h2>
           </div>
           <div className="ml-13 space-y-3 text-gray-700">
-            <p>Get notified when great deals appear:</p>
+            <p>Recibe avisos cuando aparezcan buenas ofertas:</p>
             <ul className="list-disc ml-6 space-y-2">
-              <li>Listings below your target price are highlighted with a green badge</li>
-              <li>A sound alert plays when new below-target listings are found</li>
-              <li>Browser notifications appear (ensure you've granted permission)</li>
-              <li>Check the dashboard regularly for the latest finds</li>
+              <li>Anuncios por debajo del precio objetivo se marcan en verde</li>
+              <li>Suena una alerta cuando aparecen nuevas ofertas</li>
+              <li>Notificaciones del navegador (actívalas)</li>
+              <li>Revisa el dashboard regularmente</li>
             </ul>
           </div>
         </div>
@@ -122,15 +122,15 @@ const UserGuide = () => {
             <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
               <BarChart3 className="text-indigo-600" size={24} />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Analyze Pricing Data</h2>
+            <h2 className="text-xl font-bold text-gray-900">Analiza los datos de precios</h2>
           </div>
           <div className="ml-13 space-y-3 text-gray-700">
-            <p>Click the <strong>Charts</strong> button on the dashboard to view:</p>
+            <p>Haz clic en <strong>Charts</strong> para ver:</p>
             <ul className="list-disc ml-6 space-y-2">
-              <li><strong>Price Distribution:</strong> See how listings are distributed across price ranges</li>
-              <li><strong>Average Price by Year:</strong> Track how vehicle year affects pricing</li>
-              <li><strong>Mileage vs Price:</strong> Understand the relationship between mileage and value</li>
-              <li>Use these insights to set better target prices</li>
+              <li><strong>Distribución de precios:</strong> Cómo se reparten los anuncios</li>
+              <li><strong>Precio medio por año:</strong> Relación entre año y precio</li>
+              <li><strong>Kilometraje vs precio:</strong> Relación entre uso y valor</li>
+              <li>Utiliza esta información para ajustar mejores precios objetivo</li>
             </ul>
           </div>
         </div>
@@ -141,14 +141,14 @@ const UserGuide = () => {
             <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
               <span className="text-2xl">❤️</span>
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Manage Favorites</h2>
+            <h2 className="text-xl font-bold text-gray-900">Gestionar favoritos</h2>
           </div>
           <div className="ml-13 space-y-3 text-gray-700">
-            <p>Keep track of interesting listings:</p>
+            <p>Haz seguimiento de los anuncios interesantes:</p>
             <ul className="list-disc ml-6 space-y-2">
-              <li>Click the heart icon on any listing card to add it to favorites</li>
-              <li>View your favorites count in the dashboard stats</li>
-              <li>Use the favorite filter to see only your saved listings</li>
+              <li>Haz clic en el corazón para añadir un anuncio a favoritos</li>
+              <li>Consulta el número de favoritos en el dashboard</li>
+              <li>Filtra para ver solo tus favoritos</li>
             </ul>
           </div>
         </div>
@@ -159,38 +159,38 @@ const UserGuide = () => {
             <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
               <span className="text-xl font-bold text-yellow-600">📄</span>
             </div>
-            <h2 className="text-xl font-bold text-gray-900">View Activity Logs</h2>
+            <h2 className="text-xl font-bold text-gray-900">Ver registro de actividad</h2>
           </div>
           <div className="ml-13 space-y-3 text-gray-700">
-            <p>Monitor scraping activity in the <strong>Logs</strong> page:</p>
+            <p>Supervisa la actividad en la página <strong>Logs</strong>:</p>
             <ul className="list-disc ml-6 space-y-2">
-              <li>See when scraping sessions start and stop</li>
-              <li>Track how many listings were found in each session</li>
-              <li>View errors or warnings that occurred</li>
-              <li>Filter logs by level (info, success, warning, error)</li>
+              <li>Inicio y fin de sesiones de scraping</li>
+              <li>Número de anuncios encontrados</li>
+              <li>Errores o advertencias</li>
+              <li>Filtrar por nivel (info, success, warning, error)</li>
             </ul>
           </div>
         </div>
 
         {/* Tips */}
         <div className="bg-gradient-to-br from-green-500 to-teal-600 rounded-xl p-6 text-white shadow-lg">
-          <h2 className="text-2xl font-bold mb-3">💡 Pro Tips</h2>
+          <h2 className="text-2xl font-bold mb-3">💡 Consejos útiles</h2>
           <ul className="space-y-2 text-green-100">
-            <li>• Create multiple searches for different vehicle types or price ranges</li>
-            <li>• Set realistic target prices based on market data from the charts</li>
-            <li>• Use shorter scraping intervals during peak hours for better deals</li>
-            <li>• Enable browser notifications to never miss a great deal</li>
-            <li>• Regularly check the logs to ensure scraping is working correctly</li>
-            <li>• Favorite listings you're interested in to track them over time</li>
+            <li>• Crea varias búsquedas para diferentes vehículos o rangos de precios</li>
+            <li>• Ajusta precios objetivo basándote en los datos de los gráficos</li>
+            <li>• Usa intervalos más cortos en horas pico</li>
+            <li>• Activa las notificaciones del navegador</li>
+            <li>• Revisa los registros para verificar que todo funcione bien</li>
+            <li>• Guarda anuncios interesantes en favoritos</li>
           </ul>
         </div>
 
         {/* Support */}
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-3">Need Help?</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-3">¿Necesitas ayuda?</h2>
           <p className="text-gray-700">
-            If you encounter any issues or have questions, please check the logs page for error details
-            or contact support. Happy deal hunting!
+            Si tienes problemas o preguntas, revisa la página de Logs para ver los detalles
+            o contacta con soporte. ¡Felices búsquedas!
           </p>
         </div>
       </div>

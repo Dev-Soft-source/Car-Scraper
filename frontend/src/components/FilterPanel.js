@@ -11,7 +11,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <Filter className="text-blue-600" size={20} />
-          <h2 className="text-xl font-bold text-gray-900">Filters</h2>
+          <h2 className="text-xl font-bold text-gray-900">Filtros</h2>
         </div>
         <button
           onClick={onClear}
@@ -19,7 +19,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
           className="flex items-center space-x-1 text-sm text-gray-600 hover:text-red-600 transition-colors"
         >
           <X size={16} />
-          <span>Clear All</span>
+          <span>Borrar todo</span>
         </button>
       </div>
 
@@ -27,7 +27,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
         {/* Search */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Search
+            Buscar
           </label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
@@ -36,7 +36,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
               value={filters.search || ''}
               onChange={(e) => handleChange('search', e.target.value)}
               data-testid="search-input"
-              placeholder="Search listings..."
+              placeholder="Buscar listados..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -82,7 +82,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
             value={filters.location || ''}
             onChange={(e) => handleChange('location', e.target.value)}
             data-testid="location-input"
-            placeholder="City or region"
+            placeholder="Ciudad o región"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -127,9 +127,9 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
             data-testid="seller-type-select"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="">All</option>
-            <option value="Private">Private</option>
-            <option value="Professional">Professional</option>
+            <option value="">Toda</option>
+            <option value="Private">Particular</option>
+            <option value="Professional">Profesional</option>
           </select>
         </div>
 
@@ -143,7 +143,7 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
               data-testid="target-price-checkbox"
               className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <span className="text-sm font-medium text-gray-700">Below Target Price Only</span>
+            <span className="text-sm font-medium text-gray-700">Solo por debajo del precio objetivo</span>
           </label>
         </div>
       </div>
@@ -151,14 +151,14 @@ const FilterPanel = ({ filters, setFilters, onClear }) => {
       {/* Sort */}
       <div className="mt-4 pt-4 border-t border-gray-200">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Sort By
+          Ordenar por
         </label>
         <div className="flex space-x-2">
           {[
-            { value: 'price_asc', label: 'Price: Low to High' },
-            { value: 'price_desc', label: 'Price: High to Low' },
-            { value: 'date_desc', label: 'Newest First' },
-            { value: 'date_asc', label: 'Oldest First' },
+            { value: 'price_asc', label: 'Precio: bajo a alto' },
+            { value: 'price_desc', label: 'Precio: Alto a bajo' },
+            { value: 'date_desc', label: 'Lo más nuevo primero' },
+            { value: 'date_asc', label: 'Más antiguo primero' },
           ].map((option) => (
             <button
               key={option.value}

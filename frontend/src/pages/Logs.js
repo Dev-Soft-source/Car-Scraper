@@ -95,14 +95,14 @@ const Logs = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search
+              Buscar
             </label>
             <input
               type="text"
               value={filters.search}
               onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
               data-testid="log-search-input"
-              placeholder="Search logs..."
+              placeholder="Registros de búsqueda..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -118,9 +118,9 @@ const Logs = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Todos los niveles</option>
-              <option value="info">Info</option>
-              <option value="success">Success</option>
-              <option value="warning">Warning</option>
+              <option value="info">Información</option>
+              <option value="success">Éxito</option>
+              <option value="warning">Advertencia</option>
               <option value="error">Error</option>
             </select>
           </div>
@@ -163,7 +163,7 @@ const Logs = () => {
                   {log.details && (
                     <details className="mt-2">
                       <summary className="text-sm text-blue-600 cursor-pointer hover:text-blue-800">
-                        View Details
+                        Ver detalles
                       </summary>
                       <pre className="mt-2 text-xs bg-white/50 p-2 rounded overflow-x-auto">
                         {JSON.stringify(log.details, null, 2)}

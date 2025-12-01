@@ -24,7 +24,7 @@ const Sidebar = () => {
     <div className="h-screen w-64 bg-gradient-to-b from-slate-800 via-blue-700 to-slate-800 text-white flex flex-col shadow-2xl">
       {/* Logo */}
       <div className="border-b border-blue-800/50">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-10">
             <img 
             src="/logo1.png"
             alt="Logo"
@@ -67,7 +67,7 @@ const Sidebar = () => {
           className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-600/20 transition-all duration-200 w-full text-left"
         >
           <LogOut size={20} />
-          <span className="font-medium">Logout</span>
+          <span className="font-medium">Cerrar sesión</span>
         </button>
       </div>
     </div>
