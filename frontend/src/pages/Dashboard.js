@@ -27,11 +27,12 @@ const Dashboard = () => {
   // Request notifications on first load
   useEffect(() => {
     if (!isStart.current) {
-      isStart.current = true;
+      
       requestNotificationPermission();
-      fetchStats();
+      fetchStats();``
       const interval = setInterval(fetchStats, 7000);
       return () => clearInterval(interval);
+      isStart.current = true;
     }
   }, []);
 
@@ -86,7 +87,6 @@ const Dashboard = () => {
                 icon: '/favicon.ico',
               });
             });
-
             toast.success(`${newBelow.length} ¡nuevo(s) anuncio(s) por debajo del precio objetivo!`);
           }
         }
@@ -196,8 +196,9 @@ const Dashboard = () => {
     }
   };
 
-  // Start
-  const handleStart = async () => {
+  // Stop
+  const handleStop = async () => {
+    console.log("sldfkjsadlfjsdljfjsadlfkjsdlfkjsadlfjsdlfj: ", activeSearch);
     if (!activeSearch) {
       toast.error('Por favor, selecciona primero una búsqueda');
       return;
@@ -213,8 +214,9 @@ const Dashboard = () => {
     }
   };
 
-  // Stop
-  const handleStop = async () => {
+  // Start
+  const handleStart = async () => {
+    console.log("sldfkjsadlfjsdljfjsadlfkjsdlfkjsadlfjsdlfj: ", activeSearch);
     setStopping(true);
     try {
       await searchService.startSearch(activeSearch);
@@ -251,7 +253,7 @@ const Dashboard = () => {
 
             {/* Start */}
             <button
-              onClick={handleStop}
+              onClick={handleStart}
               disabled={!stopping || running}
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all transform 
                 ${running ? "opacity-50 cursor-not-allowed" : "hover:scale-105"}
@@ -272,7 +274,7 @@ const Dashboard = () => {
 
             {/* Stop */}
             <button
-              onClick={handleStart}
+              onClick={handleStop}
               disabled={stopping || !running}
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all transform 
                 ${stopping ? "opacity-50 cursor-not-allowed" : "hover:scale-105"}
