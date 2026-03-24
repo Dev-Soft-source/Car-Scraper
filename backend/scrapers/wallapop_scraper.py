@@ -22,8 +22,8 @@ from selenium.common.exceptions import WebDriverException, InvalidSessionIdExcep
 from bs4 import BeautifulSoup
 
 # Database/service imports (adjust to your project)
-from backend.database.config import SessionLocal
-from backend.models.models import Search, Listing, Log, Statistics, UserSettings
+from database.config import SessionLocal
+from models.models import Search, Listing, Log, Statistics, UserSettings
 
 # For sending email
 import smtplib
