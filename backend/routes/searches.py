@@ -4,11 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List
-from backend.database.config import get_db
-from backend.models.models import User, Search
-from backend.utils.dependencies import get_current_user
-from backend.services.scraping_service import scraping_service
-from backend.models.models import UserSettings
+from database.config import get_db
+from models.models import User, Search
+from utils.dependencies import get_current_user
+from services.scraping_service import scraping_service
+from models.models import UserSettings
 from datetime import datetime
 from typing import Any
 import logging
@@ -150,8 +150,7 @@ def start_search(search_id: str, current_user: User = Depends(get_current_user),
     if not search:
         raise HTTPException(status_code=404, detail='Search not found')
     # Get user settings for interval
-    interval = search.interval if search else 60
-
+    interval = search.interval if search else 24
     scraper_status["running_loop"] = True
     success = scraping_service.start_search_scraping(search_id, current_user.id, interval)
     if success:

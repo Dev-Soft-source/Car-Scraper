@@ -1,9 +1,9 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from sqlalchemy.orm import Session
-from backend.database.config import SessionLocal
-from backend.models.models import Search, Listing, Log, Statistics, UserSettings
-from backend.scrapers.wallapop_scraper import WallapopScraper
+from database.config import SessionLocal
+from models.models import Search, Listing, Log, Statistics, UserSettings
+from scrapers.wallapop_scraper import WallapopScraper
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
